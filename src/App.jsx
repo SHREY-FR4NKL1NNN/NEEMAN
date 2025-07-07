@@ -15,6 +15,7 @@ import ReviewimageSlider from "./components/reviewimageslider";
 import Navbar from "./components/Navbar";
 import CollectionsPage from './pages/CollectionsPage';
 import BestSellerSlider from './components/bestsellerslider';
+import Footer from "./components/Footer";
 
 const collections = [
   {
@@ -158,6 +159,7 @@ function HomePage() {
         {/* https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500 */}
         <ImageBanner imageUrl= '  https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500' alt="Neeman's Impact" />
         {/* https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500 */}
+        <Footer bottleImage= 'https://neemans.com/cdn/shop/files/Relive_knit_bottle.png?v=1737457911&width=220' />
       </div>
     );
   }
