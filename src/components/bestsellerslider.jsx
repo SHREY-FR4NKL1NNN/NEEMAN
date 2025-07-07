@@ -17,7 +17,7 @@ function getUniqueProductsByBaseName(products) {
   });
 }
 
-const ProductSlider = ({ handles = {} }) => {
+const bestProductSlider = ({ handles = {} }) => {
   const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]); // unique products for slider
   const [scrollIndex, setScrollIndex] = useState(0);
@@ -35,7 +35,7 @@ const ProductSlider = ({ handles = {} }) => {
       let fetched = [];
       let hasMore = true;
       while (hasMore) {
-        const res = await fetch(`https://neemans.com/collections/newest-products/products.json?page=${page}`);
+        const res = await fetch(`https://neemans.com/collections/best-selling-products/products.json?page=${page}`);
         const data = await res.json();
         if (!data.products || data.products.length === 0) {
           hasMore = false;
@@ -109,7 +109,7 @@ const ProductSlider = ({ handles = {} }) => {
     <div className="relative py-14 bg-white">
       {/* Trending Slider Heading and Arrows in one row */}
       <div className="flex items-center justify-between mb-5 mt-6">
-        <h2 className="text-4xl font-bold text-black ml-16">New Launches</h2>
+        <h2 className="text-4xl font-bold text-black ml-16">Best Seller</h2>
         <div className="flex items-center mr-21">
           <button
             className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed shadow"
@@ -286,4 +286,4 @@ const ProductSlider = ({ handles = {} }) => {
   );
 };
 
-export default ProductSlider;
+export default bestProductSlider;
