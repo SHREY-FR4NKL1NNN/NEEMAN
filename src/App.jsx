@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route } from 'react-router-dom';
+import { CartProvider } from "./context/CartContext";
 import Slider from "./components/slider";
 import ImageBanner from "./components/ImageBanner";
 import CollectionCards from "./components/CollectionCards";
@@ -164,9 +165,11 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/collection/:handle" element={<CollectionsPage />} />
-    </Routes>
+    <CartProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/collection/:handle" element={<CollectionsPage />} />
+      </Routes>
+    </CartProvider>
   );
 }

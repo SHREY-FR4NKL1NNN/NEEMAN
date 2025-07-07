@@ -4,6 +4,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import ProductCard from '../components/ProductCard';
 import Navbar from '../components/Navbar';
+import { useCart } from '../context/CartContext';
+import CartSidebar from '../pages/Cart'; // Import your CartSidebar
+
 const genderOptions = ['Men', 'Women'];
 const productTypeOptions = [
     'Clogs', 'Flats', 'Flip Flops', 'Loafers', 'Oxfords', 'Sandals', 'Slides', 'Slip On', 'Sneakers'
@@ -41,6 +44,13 @@ function Collections() {
         discount: {},
         total: 0,
     });
+
+    const { addToCart, isInCart, getItemQuantity } = useCart();
+
+    // Add this state for sidebar
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const openCart = () => setIsCartOpen(true);
+    const closeCart = () => setIsCartOpen(false);
 
     const title = handle.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 
@@ -349,6 +359,12 @@ function Collections() {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }, [handle]);
 
+    // Handler that adds to cart and opens sidebar
+    const handleAddToCart = (product) => {
+        addToCart(product);
+        openCart();
+    };
+
     return (
         <>
             <div className='pb-15'>
@@ -481,7 +497,14 @@ function Collections() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+
+                                addToCart={handleAddToCart} /* Use the new handler */
+                                isInCart={isInCart}
+                                getItemQuantity={getItemQuantity}
+                            />
                         ))}
                     </div>
 
@@ -491,6 +514,7 @@ function Collections() {
                     )}
                 </main>
             </div>
+            <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
         </>
     );
 }
