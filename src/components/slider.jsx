@@ -36,7 +36,7 @@ const Slider = () => {
       setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 900);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [current]);
 
@@ -48,11 +48,7 @@ const Slider = () => {
   };
 
   return (
-    <div className="relative w-full aspect-[16/6] overflow-hidden group slider-container">
-      {/* Pause Icon Overlay */}
-      <div className="pointer-events-none select-none absolute top-5 right-5 bg-black/70 text-white px-3 py-2 rounded-full text-base opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 z-20">
-        ⏸
-      </div>
+    <div className="relative w-full aspect-[15/6] overflow-hidden group slider-container mt-16">
       {/* Slides */}
       {slides.map((slide, idx) => {
         const isActive = idx === current;
