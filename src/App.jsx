@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Routes, Route } from 'react-router-dom';
 import Slider from "./components/slider";
 import ImageBanner from "./components/ImageBanner";
 import CollectionCards from "./components/CollectionCards";
@@ -10,6 +11,9 @@ import TrendingSlider from "./components/Trendingslider";
 import VideoSlider from './components/VideoSlider';
 import StoryView from './components/StoryView';
 import VideoSlider2 from "./components/videoslider2";
+import ReviewimageSlider from "./components/reviewimageslider";
+import Navbar from "./components/Navbar";
+import CollectionsPage from './pages/CollectionsPage';
 
 
 const collections = [
@@ -86,45 +90,74 @@ const categories = [
     },
   ];
 //   https://neemans.com/cdn/shop/files/Offer_Heading_Desktop_a0c2e60b-dbab-4088-834d-40e9d7ce2ddf.jpg?v=1720181852&width=1920
-  function HomePage() {
-  return (
-    <div className="w-full min-h-screen bg-white">
-      
-      <Slider />
-      <ImageBanner imageUrl={banner1} alt="Neeman's Impact" />
-      <CollectionCards collections={collections} />
-      
-      <ImageBanner imageUrl="https://neemans.com/cdn/shop/files/Awards_Desktop.jpg?v=1727499800&width=1500" alt="Neeman's Impact" />
-      <ProductSlider />
-     
-      <ImageBanner imageUrl= "https://neemans.com/cdn/shop/files/Offer_Heading_Desktop_a0c2e60b-dbab-4088-834d-40e9d7ce2ddf.jpg?v=1720181852&width=1920" alt="Neeman's Impact" />
-      <ImageBanner imageUrl="https://neemans.com/cdn/shop/files/Offers_desktop_01_2506b261-7719-4241-92bb-ae553479abe5.jpg?v=1739874202&width=1500" alt="Neeman's Impact" />
-      <CollectionCards collections={categories} />
-      <TrendingSlider/>
-      
-      <h2 className="font-semibold text-[27px] leading-[38px] text-black text-center pt-5 pb-2.5 mb-0 font-['Abril_Display',serif] px-4 md:px-12">
-        Customer Testimonials
-      </h2>
-      <ImageBanner imageUrl={reviewimage} alt="Neeman's Impact" />
-      <VideoSlider />
-      {/* <ReviewsSlider/> */}
-      {/* https://neemans.com/cdn/shop/files/Featured_in_cc1443f3-4215-46f6-be65-2647ccc65f40.jpg?v=1712584374&width=1500 */}
-      <ImageBanner imageUrl='https://neemans.com/cdn/shop/files/Featured_in_cc1443f3-4215-46f6-be65-2647ccc65f40.jpg?v=1712584374&width=1500'alt="Neeman's Impact" />
 
-      <StoryView
-  videoUrl="https://cdn.shopify.com/videos/c/o/v/f629a444b254409ea7c4562746413c1a.mp4"
-  imageUrl="https://neemans.com/cdn/shop/files/Videos_text.jpg?v=1712241682&width=550"
-  heading="Our Story"
-  description={`We crushed something\nAnd it turned into a story we're proud of!`}
-  quote="Left in the ocean. Recycled into shoes."
-/>
-  <VideoSlider2/>
-  <ImageBanner imageUrl='https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500' alt="Neeman's Impact" />
-  {/* https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500 */}
-  <ImageBanner imageUrl= '  https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500' alt="Neeman's Impact" />
-  {/* https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500 */}
-    </div>
+// Create a mapping from baseName (lowercase) to handle
+const handles = {};
+[...collections, ...categories].forEach(item => {
+  const baseName = (item.title || item.label || '').split(' : ')[0].trim().toLowerCase();
+  if (baseName && item.handle) handles[baseName] = item.handle;
+});
+
+function HomePage() {
+    const [showNavbar, setShowNavbar] = useState(true);
+
+    useEffect(() => {
+      const handleScroll = () => {
+        const half = document.body.scrollHeight / 2;
+        setShowNavbar(window.scrollY < half);
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    return (
+      <div className="w-full min-h-screen bg-white">
+        <div className={`top-0 left-0 w-full z-50 transition-all duration-700 ${showNavbar ? 'sticky opacity-100' : 'opacity-0 pointer-events-none'}`} style={{position: showNavbar ? 'sticky' : 'fixed'}}>
+          <Navbar />
+        </div>
+        <Slider />
+        <ImageBanner imageUrl={banner1} alt="Neeman's Impact" />
+        <CollectionCards collections={collections} />
+        
+        <ImageBanner imageUrl="https://neemans.com/cdn/shop/files/Awards_Desktop.jpg?v=1727499800&width=1500" alt="Neeman's Impact" />
+        <ProductSlider handles={handles} />
+       
+        <ImageBanner imageUrl= "https://neemans.com/cdn/shop/files/Offer_Heading_Desktop_a0c2e60b-dbab-4088-834d-40e9d7ce2ddf.jpg?v=1720181852&width=1920" alt="Neeman's Impact" />
+        <ImageBanner imageUrl="https://neemans.com/cdn/shop/files/Offers_desktop_01_2506b261-7719-4241-92bb-ae553479abe5.jpg?v=1739874202&width=1500" alt="Neeman's Impact" />
+        <CollectionCards collections={categories} />
+        <TrendingSlider handles={handles} />
+        
+        <h2 className="font-semibold text-[27px] leading-[38px] text-black text-center pt-5 pb-2.5 mb-0 font-['Abril_Display',serif] px-4 md:px-12">
+          Customer Testimonials
+        </h2>
+        <ImageBanner imageUrl={reviewimage} alt="Neeman's Impact" />
+        <VideoSlider />
+        {/* <ReviewsSlider/> */}
+        {/* https://neemans.com/cdn/shop/files/Featured_in_cc1443f3-4215-46f6-be65-2647ccc65f40.jpg?v=1712584374&width=1500 */}
+        <ImageBanner imageUrl='https://neemans.com/cdn/shop/files/Featured_in_cc1443f3-4215-46f6-be65-2647ccc65f40.jpg?v=1712584374&width=1500'alt="Neeman's Impact" />
+
+        <StoryView
+          videoUrl="https://cdn.shopify.com/videos/c/o/v/f629a444b254409ea7c4562746413c1a.mp4"
+          imageUrl="https://neemans.com/cdn/shop/files/Videos_text.jpg?v=1712241682&width=550"
+          heading="Our Story"
+          description={`We crushed something\nAnd it turned into a story we're proud of!`}
+          quote="Left in the ocean. Recycled into shoes."
+        />
+        <ReviewimageSlider />
+        <VideoSlider2/>
+        <ImageBanner imageUrl='https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500' alt="Neeman's Impact" />
+        {/* https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500 */}
+        <ImageBanner imageUrl= '  https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500' alt="Neeman's Impact" />
+        {/* https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500 */}
+      </div>
+    );
+  }
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/collection/:handle" element={<CollectionsPage />} />
+    </Routes>
   );
 }
-
-export default HomePage;

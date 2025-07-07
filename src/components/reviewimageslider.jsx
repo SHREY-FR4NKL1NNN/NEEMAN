@@ -2,29 +2,21 @@ import React, { useState, useEffect } from "react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const slides = [
-  {
-    image: 'https://neemans.com/cdn/shop/files/1920X800_Desktop_Banner_06787013-8711-4e09-8c07-cb09ee213a14.jpg?v=1750951745&width=1500',
-    href: 'https://neemans.com/products/begin-walk-flow'
-  },
-  {
-    image: 'https://neemans.com/cdn/shop/files/1920X800_-_Desktop_Banner_Cushers.jpg?v=1749889879&width=1500',
-    href: '#'
-  },
-  {
-    image: 'https://neemans.com/cdn/shop/files/BWT_-_Desktop_Banner.jpg?v=1751290410&width=1500',
-    href: '#'
-  },
-  {
-    image: 'https://neemans.com/cdn/shop/files/ELT_-_Desktop_Banner.jpg?v=1751290410&width=1500',
-    href: '#'
-  },
-  {
-    image: 'https://neemans.com/cdn/shop/files/1920X800_Desktop_Banner.jpg?v=1750788112&width=1500',
-    href: '#'
-  },
-];
+    {
+      image: 'https://neemans.com/cdn/shop/files/01_Desktop_New.jpg?v=1744807528&width=1500',
+      href: 'https://neemans.com/products/begin-walk-flow'
+    },
+    {
+      image: 'https://neemans.com/cdn/shop/files/02_Desktop_New.jpg?v=1744807528&width=1500',
+      href: '#'
+    },
+    {
+      image: 'https://neemans.com/cdn/shop/files/04_Desktop_New.jpg?v=1744807528&width=1500',
+      href: '#'
+    }
+  ];
 
-const Slider = () => {
+const ReviewimageSlider = () => {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -110,11 +102,11 @@ const Slider = () => {
           <button
             key={idx}
             onClick={() => handleManual(idx)}
-            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 flex items-center justify-center rounded-full border border-white transition-colors duration-200 focus:outline-none ${idx === current ? "bg-white" : "bg-transparent"}`}
+            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 flex items-center justify-center rounded-full border border-black transition-colors duration-200 focus:outline-none ${idx === current ? "bg-black" : "bg-transparent"}`}
             aria-label={`Go to slide ${idx + 1}`}
           >
             {idx === current ? (
-              <span className="block w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white" />
+              <span className="block w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-black" />
             ) : null}
           </button>
         ))}
@@ -123,4 +115,4 @@ const Slider = () => {
   );
 };
 
-export default Slider;
+export default ReviewimageSlider;

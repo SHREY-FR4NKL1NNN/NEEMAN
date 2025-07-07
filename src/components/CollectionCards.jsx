@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const CollectionCards = ({ collections }) => {
   // Split collections into rows of 4
@@ -21,9 +22,9 @@ const CollectionCards = ({ collections }) => {
       {rows.map((row, idx) => (
         <div key={idx} className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-10 mt-0 mb-0">
           {row.map((col) => (
-            <a
+            <Link
               key={col.handle}
-              href={`/${col.handle}`}
+              to={`/collection/${col.handle}`}
               className="relative group block w-full flex justify-center items-center overflow-hidden"
             >
               <img
@@ -32,18 +33,18 @@ const CollectionCards = ({ collections }) => {
                 className="object-contain max-w-full max-h-full transition-transform duration-300 group-hover:scale-105"
                 draggable="false"
               />
-            </a>
+            </Link>
           ))}
         </div>
       ))}
       <div className="flex justify-center py-[50px]">
-        <a
-          href="/all-products"
+        <Link
+          to="/all-products"
           className="border border-black px-8 py-3 font-semibold text-black flex items-center gap-2 hover:bg-gray-100 transition-colors"
         >
           VIEW ALL PRODUCTS
           <span className="inline-block text-xl font-bold">&#8594;</span>
-        </a>
+        </Link>
       </div>
     </section>
   );

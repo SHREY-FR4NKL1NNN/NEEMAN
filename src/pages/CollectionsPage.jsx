@@ -343,6 +343,12 @@ function Collections() {
 
         setProducts(sorted);
     }, [filteredProducts, sortBy]);
+
+    // Scroll to top when handle changes
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, [handle]);
+
     return (
         <>
             <div className='pb-15'>
