@@ -402,6 +402,3 @@ export const CENTER_NAV_LINKS = [
     ]
   }
 ];
-
-
-export default MegaMenu;

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import CartSidebar from '../pages/Cart'; // Adjust path if needed
 // import './ProductSliderCustom.css';
 
 function extractBaseNameAndColor(title) {
@@ -27,6 +29,8 @@ const ProductSlider = ({ handles = {} }) => {
   const [swatchScroll, setSwatchScroll] = useState({}); // { idx: scrollIndex }
   const visibleCount = 4;
   const swatchVisibleCount = 3;
+  const { addToCart, isInCart, getItemQuantity } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Fetch all products for color variants and unique slider products
   useEffect(() => {
@@ -104,6 +108,12 @@ const ProductSlider = ({ handles = {} }) => {
       [idx]: Math.min((prev[idx] || 0) + 1, max - swatchVisibleCount),
     }));
   };
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setIsCartOpen(true);
+  };
+  const closeCart = () => setIsCartOpen(false);
 
   return (
     <div className="relative py-14 bg-white">
@@ -255,7 +265,7 @@ const ProductSlider = ({ handles = {} }) => {
                         <span className="text-green-600 text-base font-semibold">{discount}% OFF</span>
                       )}
                     </div>
-                    <button className="mt-2 w-full flex items-center justify-center gap-2 bg-black text-white py-3  font-semibold text-base hover:bg-gray-900 transition">
+                    <button className="mt-2 w-full flex items-center justify-center gap-2 bg-black text-white py-3 font-semibold text-base hover:bg-gray-900 transition" onClick={() => handleAddToCart(active)} disabled={isInCart(active.id)}>
                       <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6.7395 18.959C7.42986 18.959 7.9895 18.3993 7.9895 17.709C7.9895 17.0186 7.42986 16.459 6.7395 16.459C6.04915 16.459 5.4895 17.0186 5.4895 17.709C5.4895 18.3993 6.04915 18.959 6.7395 18.959Z" fill="white"></path>
                         <path d="M14.8645 18.959C15.5549 18.959 16.1145 18.3993 16.1145 17.709C16.1145 17.0186 15.5549 16.459 14.8645 16.459C14.1741 16.459 13.6145 17.0186 13.6145 17.709C13.6145 18.3993 14.1741 18.959 14.8645 18.959Z" fill="white"></path>
@@ -263,7 +273,7 @@ const ProductSlider = ({ handles = {} }) => {
                         <path d="M14.0208 6H18.8333" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         <path d="M16.3542 3.66675V8.47925" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
-                      ADD TO CART
+                      {isInCart(active.id) ? "IN CART" : "ADD TO CART"}
                     </button>
                   </div>
                 </div>
@@ -282,6 +292,7 @@ const ProductSlider = ({ handles = {} }) => {
           </span>
         </Link>
       </div>
+      <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
     </div>
   );
 };
