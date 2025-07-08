@@ -593,7 +593,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 {/* Discount summary, only show if cart has items */}
                 {cart.items.length > 1 && (
                   <div style={{marginBottom: 0, paddingBottom: 0}}>
-                    <div style={{display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 15, color: '#888', marginBottom: 2}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: 15, color: '#888', marginBottom: 2, marginLeft: -18}}>
                       <span>Discounts</span>
                       {cart.items.length === 2 && (
                         <span style={{background: '#f5f5f5', color: '#888', fontWeight: 600, borderRadius: 4, padding: '2px 8px', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4}}>
@@ -619,9 +619,9 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 )}
                 <div className="cart-summary" style={{margin: 0, padding: 0, background: 'transparent', color: '#808080'}}>
                   <div className="summary-row" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0, margin: 0, padding: 0, color: '#808080'}}>
-                    <span style={{fontWeight: 700, fontSize: 14, color: '#808080', margin: 0, padding: 0}}>Subtotal:</span>
+                    <span style={{fontWeight: 700, fontSize: 14, color: 'black', margin: 0, padding: 0,marginLeft: -18}}>Subtotal:</span>
                     <div style={{display: 'flex', alignItems: 'baseline', gap: 8, flex: 1, justifyContent: 'flex-end', margin: 0, padding: 0}}>
-                      <span style={{fontWeight: 700, fontSize: 14, color: '#808080', textAlign: 'right', minWidth: 120, letterSpacing: 0, margin: 0, padding: 0}}>
+                      <span style={{fontWeight: 700, fontSize: 14, color: 'black', textAlign: 'right', minWidth: 120, letterSpacing: 0, margin: 0, padding: 0}}>
                         {formatPrice(
                           getCartTotal()
                           - (cart.items.length === 2 ? getCartTotal() * 0.07 : 0)
