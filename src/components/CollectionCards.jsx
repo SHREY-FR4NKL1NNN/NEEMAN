@@ -40,13 +40,16 @@ const CollectionCards = ({ collections }) => {
       <div className="flex justify-center py-[50px]">
         <Link
           to="/collection/all-products"
-          className="border border-black bg-[#faf6ee] text-black px-8 py-3 font-semibold text-base transition-colors duration-300 flex items-center gap-2 hover:bg-black hover:text-white"
+          className="btn relative inline-flex items-center justify-start overflow-hidden font-medium transition-all bg-[#faf6ee] border border-black group py-3 px-8"
         >
-          VIEW ALL PRODUCTS
-          <span className="text-xl flex items-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 4.5L16.5 12L9 19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
+          <span className="w-full h-full bg-black absolute top-0 right-0 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out z-0"></span>
+          <span className="relative w-full text-left text-black transition-colors duration-300 ease-in-out group-hover:text-white flex items-center gap-1 z-10 text-base">
+            <span className="text-sm font-semibold">VIEW ALL PRODUCTS</span>
+            <span className="text-lg flex items-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 4.5L16.5 12L9 19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </span>
           </span>
         </Link>
       </div>
