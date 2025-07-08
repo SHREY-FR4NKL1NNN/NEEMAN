@@ -56,6 +56,11 @@ const CartSidebar = ({ isOpen, onClose }) => {
   const [topPicks, setTopPicks] = React.useState([]);
   const [productsLoaded, setProductsLoaded] = React.useState(false);
 
+  // New state for top pick size modal
+  const [showTopPickSizeModal, setShowTopPickSizeModal] = React.useState(false);
+  const [topPickProduct, setTopPickProduct] = React.useState(null);
+  const [selectedTopPickVariant, setSelectedTopPickVariant] = React.useState(null);
+
   // Fetch all products from all-products, men, and women collections
   React.useEffect(() => {
     Promise.all([
@@ -66,18 +71,18 @@ const CartSidebar = ({ isOpen, onClose }) => {
       // Helper to flatten products and get correct image for each variant
       const flatten = (data) => (data.products || []).flatMap(product =>
         product.variants.map(variant => {
-          // Try to find image for this variant, fallback to first product image
           let image = '';
           if (variant.featured_image && variant.featured_image.src) {
             image = variant.featured_image.src;
           } else if (product.images && product.images.length > 0) {
-            // Try to find image by variant_ids
             const match = product.images.find(img => (img.variant_ids || []).includes(variant.id));
             if (match && match.src) image = match.src;
             else image = product.images[0].src || product.images[0];
           }
           return {
-            id: variant.id.toString(),
+            id: product.id.toString(), // product id
+            variant_id: variant.id.toString(), // variant id (use this everywhere)
+            variant_title: variant.title,
             handle: product.handle,
             title: product.title,
             price: Number(variant.price),
@@ -384,158 +389,161 @@ const CartSidebar = ({ isOpen, onClose }) => {
                     </div>
                   )}
                   <div className="cart-items-list">
-                    {cart.items.map((item) => (
-                      <div key={`${item.id}-${item.variant_id}`} className="cart-sidebar-item" style={{display: 'flex', alignItems: 'flex-start', gap: 18, borderBottom: '1px solid #eee', padding: '18px 0 12px 0'}}>
-                        {/* Product Image (last image from images array) */}
-                        <div className="item-image" style={{width: 110, minWidth: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f6f6', borderRadius: 8}}>
-                          {(() => {
-                            // Always use the last image from the images array (Neemans.com style)
-                            let imgSrc = '/placeholder-product.jpg';
-                            let imagesArr = null;
-                            // Find the product in allProducts by variant id (id)
-                            const prod = allProducts.find(p => p.id === item.id.toString());
-                            // If product is found in allProducts, try to get images from the original product (not variant)
-                            if (prod && prod.handle) {
-                              // Find the original product by handle in allProducts (flattened structure)
-                              const originalProduct = allProducts.find(p => p.handle === prod.handle && p.images && Array.isArray(p.images) && p.images.length > 0);
-                              if (originalProduct && originalProduct.images && originalProduct.images.length > 0) {
-                                imagesArr = originalProduct.images;
+                    {cart.items.map((item) => {
+                      const prod = allProducts.find(p => p.variant_id === item.variant_id?.toString());
+                      return (
+                        <div key={`${item.id}-${item.variant_id}`} className="cart-sidebar-item" style={{display: 'flex', alignItems: 'flex-start', gap: 18, borderBottom: '1px solid #eee', padding: '18px 0 12px 0'}}>
+                          {/* Product Image (last image from images array) */}
+                          <div className="item-image" style={{width: 110, minWidth: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f6f6', borderRadius: 8}}>
+                            {(() => {
+                              // Always use the last image from the images array (Neemans.com style)
+                              let imgSrc = '/placeholder-product.jpg';
+                              let imagesArr = null;
+                              // Find the product in allProducts by variant id (id)
+                              const prod = allProducts.find(p => p.variant_id === item.variant_id?.toString());
+                              // If product is found in allProducts, try to get images from the original product (not variant)
+                              if (prod && prod.handle) {
+                                // Find the original product by handle in allProducts (flattened structure)
+                                const originalProduct = allProducts.find(p => p.handle === prod.handle && p.images && Array.isArray(p.images) && p.images.length > 0);
+                                if (originalProduct && originalProduct.images && originalProduct.images.length > 0) {
+                                  imagesArr = originalProduct.images;
+                                }
                               }
-                            }
-                            // Fallback to prod.images if above not found
-                            if (!imagesArr && prod && prod.images && Array.isArray(prod.images) && prod.images.length > 0) {
-                              imagesArr = prod.images;
-                            }
-                            // Fallback to item.images
-                            if (!imagesArr && item.images && Array.isArray(item.images) && item.images.length > 0) {
-                              imagesArr = item.images;
-                            }
-                            if (imagesArr && imagesArr.length > 0) {
-                              const lastImg = imagesArr[imagesArr.length - 1];
-                              imgSrc = lastImg.src || lastImg;
-                            } else if (prod && prod.image) {
-                              imgSrc = prod.image;
-                            } else if (item.image) {
-                              imgSrc = item.image;
-                            }
-                            return (
-                              <img src={imgSrc} alt={item.title} style={{width: 100, height: 80, objectFit: 'contain', borderRadius: 0, background: 'transparent', display: 'block'}} />
-                            );
-                          })()}
-                        </div>
-                        {/* Product Info */}
-                        <div className="item-info" style={{flex: 1, minWidth: 0}}>
-                          <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%'}}>
-                            <h4 style={{
-                              fontWeight: 600,
-                              fontSize: 16,
-                              color: '#111',
-                              margin: 0,
-                              padding: 0,
-                              lineHeight: 1.2,
-                              wordBreak: 'break-word',
-                              whiteSpace: 'normal',
-                              overflow: 'visible',
-                              textOverflow: 'unset',
-                              display: 'block',
-                              maxWidth: '100%',
+                              // Fallback to prod.images if above not found
+                              if (!imagesArr && prod && prod.images && Array.isArray(prod.images) && prod.images.length > 0) {
+                                imagesArr = prod.images;
+                              }
+                              // Fallback to item.images
+                              if (!imagesArr && item.images && Array.isArray(item.images) && item.images.length > 0) {
+                                imagesArr = item.images;
+                              }
+                              if (imagesArr && imagesArr.length > 0) {
+                                const lastImg = imagesArr[imagesArr.length - 1];
+                                imgSrc = lastImg.src || lastImg;
+                              } else if (prod && prod.image) {
+                                imgSrc = prod.image;
+                              } else if (item.image) {
+                                imgSrc = item.image;
+                              }
+                              return (
+                                <img src={imgSrc} alt={item.title} style={{width: 100, height: 80, objectFit: 'contain', borderRadius: 0, background: 'transparent', display: 'block'}} />
+                              );
+                            })()}
+                          </div>
+                          {/* Product Info */}
+                          <div className="item-info" style={{flex: 1, minWidth: 0}}>
+                            <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%'}}>
+                              <h4 style={{
+                                fontWeight: 600,
+                                fontSize: 16,
+                                color: '#111',
+                                margin: 0,
+                                padding: 0,
+                                lineHeight: 1.2,
+                                wordBreak: 'break-word',
+                                whiteSpace: 'normal',
+                                overflow: 'visible',
+                                textOverflow: 'unset',
+                                display: 'block',
+                                maxWidth: '100%',
                             }}>{item.title}</h4>
-                            {/* Delete Icon */}
-                            <button 
-                              className="remove-btn"
-                              onClick={() => removeFromCart(item.id, item.variant_id)}
-                              style={{background: 'none', border: 'none', padding: 0, marginLeft: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', height: 48, minHeight: 48, alignSelf: 'stretch'}}
-                              aria-label="Remove from cart"
-                            >
-                              {/* New trash can icon as provided by user */}
-                              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="8" y="10" width="16" height="16" rx="2" fill="none" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                                <rect x="12" y="6" width="8" height="4" rx="1" fill="none" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                                <line x1="16" y1="14" x2="16" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                                <line x1="12" y1="14" x2="12" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                                <line x1="20" y1="14" x2="20" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                                <line x1="10" y1="10" x2="22" y2="10" stroke="#888" strokeWidth="1" fontWeight='100'/>
-                              </svg>
-                            </button>
-                          </div>
-                          {/* Show size as UK X if possible */}
-                          {item.variant_title && (
-                            <p className="variant-info" style={{color: '#888', fontWeight: 600, fontSize: 14, margin: '2px 0 8px 0'}}>
-                              {(() => {
-                                const sizeMatch = item.variant_title.match(/\d+/g);
-                                if (sizeMatch && sizeMatch.length > 0) {
-                                  return `Size: ${sizeMatch.map(s => `UK ${s}`).join(', ')}`;
-                                }
-                                return item.variant_title;
-                              })()}
-                            </p>
-                          )}
-                          {/* Price, compare_at_price, discount */}
-                          <div className="item-price-qty" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2}}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2}}>
-                              {/* Price (Neemans.com: price key) */}
-                              {(() => {
-                                // Always use the product from allProducts for price/compare_at_price/discount
-                                const prod = allProducts.find(p => p.id === item.id.toString());
-                                let price = null;
-                                let compareAt = null;
-                                // Neemans.com JSON: price and compare_at_price are strings, must be parsed
-                                if (prod) {
-                                  price = prod.price !== undefined ? Number(prod.price) : (item.price !== undefined ? Number(item.price) : null);
-                                  // Try to get compare_at_price from prod, fallback to originalPrice, fallback to item
-                                  compareAt = prod.compare_at_price !== undefined && prod.compare_at_price !== null ? Number(prod.compare_at_price) : (prod.originalPrice !== undefined ? Number(prod.originalPrice) : (item.compare_at_price !== undefined ? Number(item.compare_at_price) : (item.originalPrice !== undefined ? Number(item.originalPrice) : null)));
-                                  // If still not found, try to get from prod.variant if available
-                                  if ((!compareAt || compareAt === price) && prod.variants && Array.isArray(prod.variants)) {
-                                    const variant = prod.variants.find(v => v.id.toString() === item.variant_id?.toString() || v.id.toString() === item.id?.toString());
-                                    if (variant && variant.compare_at_price) {
-                                      compareAt = Number(variant.compare_at_price);
-                                    }
-                                  }
-                                } else {
-                                  price = item.price !== undefined ? Number(item.price) : null;
-                                  compareAt = item.compare_at_price !== undefined ? Number(item.compare_at_price) : (item.originalPrice !== undefined ? Number(item.originalPrice) : null);
-                                }
-                                return (
-                                  <>
-                                    <span className="price" style={{fontWeight: 700, color: '#222', fontSize: 14}}>Rs. {price !== null ? price.toLocaleString('en-IN') : ''}</span>
-                                    {compareAt && compareAt > price && (
-                                      <span style={{textDecoration: 'line-through', color: '#b3b3b3', fontWeight: 500, fontSize: 14, marginLeft: 4}}>Rs. {compareAt.toLocaleString('en-IN')}</span>
-                                    )}
-                                    {compareAt && price && compareAt > price && (
-                                      <span style={{color: '#2eaf4d', fontWeight: 300, fontSize: 14, marginLeft: 2}}>{Math.round(((compareAt - price) / compareAt) * 100)}% OFF</span>
-                                    )}
-                                  </>
-                                );
-                              })()}
+                              {/* Delete Icon */}
+                              <button 
+                                className="remove-btn"
+                                onClick={() => removeFromCart(item.id, item.variant_id)}
+                                style={{background: 'none', border: 'none', padding: 0, marginLeft: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', height: 48, minHeight: 48, alignSelf: 'stretch'}}
+                                aria-label="Remove from cart"
+                              >
+                                {/* New trash can icon as provided by user */}
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <rect x="8" y="10" width="16" height="16" rx="2" fill="none" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                  <rect x="12" y="6" width="8" height="4" rx="1" fill="none" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                  <line x1="16" y1="14" x2="16" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                  <line x1="12" y1="14" x2="12" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                  <line x1="20" y1="14" x2="20" y2="22" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                  <line x1="10" y1="10" x2="22" y2="10" stroke="#888" strokeWidth="1" fontWeight='100'/>
+                                </svg>
+                              </button>
                             </div>
-                            {/* Quantity controls */}
-                            <div className="quantity-controls" style={{marginTop: 2, display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: 2, overflow: 'hidden', height: 38}}>
-                              <div style={{display: 'flex', alignItems: 'center', position: 'relative'}}>
-                                <button
-                                  onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                                  style={{width: 38, height: 38, fontSize: 22, fontWeight: 400, color: '#222', background: '#fff', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', borderRadius: 0, position: 'relative'}} 
-                                  onMouseOver={e => e.currentTarget.style.background = '#F0F0F0'}
-                                  onMouseOut={e => e.currentTarget.style.background = '#fff'}
-                                >–</button>
-                                {/* Vertical line after minus button */}
-                                <div style={{width: 1, height: 38, background: '#ddd', position: 'absolute', left: 38, top: 0, zIndex: 1}}></div>
+                            {/* Show size as UK X if possible */}
+                            {item.variant_title && (
+                              <p className="variant-info" style={{color: '#888', fontWeight: 600, fontSize: 14, margin: '2px 0 8px 0'}}>
+                                {(() => {
+                                  const sizeMatch = item.variant_title.match(/UK\s*\d+(\.\d+)?/i);
+                                  if (sizeMatch) {
+                                    return `Size: ${sizeMatch[0].toUpperCase()}`;
+                                  }
+                                  return '';
+                                })()}
+                              </p>
+                            )}
+                            {/* Price, compare_at_price, discount */}
+                            <div className="item-price-qty" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2}}>
+                              <div style={{display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2}}>
+                                {/* Price (Neemans.com: price key) */}
+                                {(() => {
+                                  // Always use the product from allProducts for price/compare_at_price/discount
+                                  const prod = allProducts.find(p => p.variant_id === item.variant_id?.toString());
+                                  let price = null;
+                                  let compareAt = null;
+                                  // Neemans.com JSON: price and compare_at_price are strings, must be parsed
+                                  if (prod) {
+                                    price = prod.price !== undefined ? Number(prod.price) : (item.price !== undefined ? Number(item.price) : null);
+                                    // Try to get compare_at_price from prod, fallback to originalPrice, fallback to item
+                                    compareAt = prod.compare_at_price !== undefined && prod.compare_at_price !== null ? Number(prod.compare_at_price) : (prod.originalPrice !== undefined ? Number(prod.originalPrice) : (item.compare_at_price !== undefined ? Number(item.compare_at_price) : (item.originalPrice !== undefined ? Number(item.originalPrice) : null)));
+                                    // If still not found, try to get from prod.variant if available
+                                    if ((!compareAt || compareAt === price) && prod.variants && Array.isArray(prod.variants)) {
+                                      const variant = prod.variants.find(v => v.id.toString() === item.variant_id?.toString() || v.id.toString() === item.id?.toString());
+                                      if (variant && variant.compare_at_price) {
+                                        compareAt = Number(variant.compare_at_price);
+                                      }
+                                    }
+                                  } else {
+                                    price = item.price !== undefined ? Number(item.price) : null;
+                                    compareAt = item.compare_at_price !== undefined ? Number(item.compare_at_price) : (item.originalPrice !== undefined ? Number(item.originalPrice) : null);
+                                  }
+                                  return (
+                                    <>
+                                      <span className="price" style={{fontWeight: 700, color: '#222', fontSize: 14}}>Rs. {price !== null ? price.toLocaleString('en-IN') : ''}</span>
+                                      {compareAt && compareAt > price && (
+                                        <span style={{textDecoration: 'line-through', color: '#b3b3b3', fontWeight: 500, fontSize: 14, marginLeft: 4}}>Rs. {compareAt.toLocaleString('en-IN')}</span>
+                                      )}
+                                      {compareAt && price && compareAt > price && (
+                                        <span style={{color: '#2eaf4d', fontWeight: 300, fontSize: 14, marginLeft: 2}}>{Math.round(((compareAt - price) / compareAt) * 100)}% OFF</span>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
-                              <span style={{width: 38, textAlign: 'center', fontWeight: 600, fontSize: 18, color: '#222', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 0}}>{item.quantity}</span>
-                              <div style={{display: 'flex', alignItems: 'center', position: 'relative'}}>
-                                {/* Vertical line before plus button */}
-                                <div style={{width: 1, height: 38, background: '#ddd', position: 'absolute', left: 0, top: 0, zIndex: 1}}></div>
-                                <button
-                                  onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                                  style={{width: 38, height: 38, fontSize: 22, fontWeight: 400, color: '#222', background: '#fff', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', borderRadius: 0, position: 'relative'}}
-                                  onMouseOver={e => e.currentTarget.style.background = '#F0F0F0'}
-                                  onMouseOut={e => e.currentTarget.style.background = '#fff'}
-                                >+</button>
+                              {/* Quantity controls */}
+                              <div className="quantity-controls" style={{marginTop: 2, display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: 2, overflow: 'hidden', height: 38}}>
+                                <div style={{display: 'flex', alignItems: 'center', position: 'relative'}}>
+                                  <button
+                                    onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                                    style={{width: 38, height: 38, fontSize: 22, fontWeight: 400, color: '#222', background: '#fff', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', borderRadius: 0, position: 'relative'}} 
+                                    onMouseOver={e => e.currentTarget.style.background = '#F0F0F0'}
+                                    onMouseOut={e => e.currentTarget.style.background = '#fff'}
+                                  >–</button>
+                                  {/* Vertical line after minus button */}
+                                  <div style={{width: 1, height: 38, background: '#ddd', position: 'absolute', left: 38, top: 0, zIndex: 1}}></div>
+                                </div>
+                                <span style={{width: 38, textAlign: 'center', fontWeight: 600, fontSize: 18, color: '#222', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 0}}>{item.quantity}</span>
+                                <div style={{display: 'flex', alignItems: 'center', position: 'relative'}}>
+                                  {/* Vertical line before plus button */}
+                                  <div style={{width: 1, height: 38, background: '#ddd', position: 'absolute', left: 0, top: 0, zIndex: 1}}></div>
+                                  <button
+                                    onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                                    style={{width: 38, height: 38, fontSize: 22, fontWeight: 400, color: '#222', background: '#fff', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s', borderRadius: 0, position: 'relative'}}
+                                    onMouseOver={e => e.currentTarget.style.background = '#F0F0F0'}
+                                    onMouseOut={e => e.currentTarget.style.background = '#fff'}
+                                  >+</button>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="top-picks-section">
                     {topPicks.length > 0 ? (
@@ -564,15 +572,24 @@ const CartSidebar = ({ isOpen, onClose }) => {
                               </div>
                               <button
                                 onClick={() => {
-                                  // Only add if not already in cart (by id+variant_id)
-                                  const alreadyInCart = cart.items.some(
-                                    item => item.id === product.id && item.variant_id === product.variant_id
+                                  // Find all variants for this color (handle + color)
+                                  const color = product.title.split(":")[1]?.trim().toLowerCase() || '';
+                                  const variants = allProducts.filter(
+                                    p => p.handle === product.handle &&
+                                         (p.title.split(":")[1]?.trim().toLowerCase() || '') === color
                                   );
-                                  if (!alreadyInCart) {
-                                    addToCart(product);
-                                  }
+                                  setTopPickProduct({
+                                    ...product,
+                                    variants,
+                                  });
+                                  setShowTopPickSizeModal(true);
+                                  setSelectedTopPickVariant(null);
                                 }}
-                                style={{marginLeft: 5, marginRight: 5, lineHeight: '20px', background: '#bd9966', border: '1px solid #BD9966', color: 'white', border: 'none', borderRadius: 4, padding: '10px 18px', fontWeight: 700, fontSize: 14, cursor: 'pointer', minWidth: 80, minHeight: 38, letterSpacing: 0.5}}
+                                style={{
+                                  marginLeft: 5, marginRight: 5, lineHeight: '20px', background: '#bd9966', border: '1px solid #BD9966',
+                                  color: 'white', border: 'none', borderRadius: 4, padding: '10px 18px', fontWeight: 700, fontSize: 14,
+                                  cursor: 'pointer', minWidth: 80, minHeight: 38, letterSpacing: 0.5
+                                }}
                               >
                                 ADD +
                               </button>
@@ -644,7 +661,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                             }
                           } else {
                             let compareSum = cart.items.reduce((acc, item) => {
-                              const prod = allProducts.find(p => p.id === item.id.toString());
+                              const prod = allProducts.find(p => p.variant_id === item.variant_id?.toString());
                               const compareAt = prod && prod.originalPrice ? prod.originalPrice : item.price;
                               return acc + (compareAt * item.quantity);
                             }, 0);
@@ -676,6 +693,118 @@ const CartSidebar = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
+
+      {showTopPickSizeModal && topPickProduct && (
+  <div
+    style={{
+      position: 'fixed',
+      right: 24,
+      bottom: 24,
+      width: 400,
+      maxWidth: '95vw',
+      background: 'rgba(0,0,0,0.0)',
+      zIndex: 3000,
+      pointerEvents: 'auto',
+      display: 'flex',
+      justifyContent: 'flex-end',
+      alignItems: 'flex-end',
+    }}
+  >
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: 12,
+        padding: 24,
+        minWidth: 280,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+        position: 'relative',
+        marginBottom: 16,
+        width: '100%',
+        maxWidth: 400,
+      }}
+      onClick={e => e.stopPropagation()}
+    >
+      <h3 style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, textAlign: 'center' }}>Select Size</h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16, justifyContent: 'center' }}>
+        {(topPickProduct.variants || []).map(variant => {
+          // Extract only the size (e.g., "UK 4", "UK 5", etc.)
+          let sizeLabel = '';
+          const match = (variant.variant_title || variant.title || '').match(/UK\s*\d+(\.\d+)?/i);
+          if (match) sizeLabel = match[0].toUpperCase();
+          else sizeLabel = (variant.variant_title || variant.title || '').replace(/[^0-9.]/g, '');
+          return (
+            <button
+              key={variant.variant_id || variant.id}
+              onClick={() => setSelectedTopPickVariant(variant)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 4,
+                border: selectedTopPickVariant?.variant_id === variant.variant_id ? '2px solid black' : '2px solid #ccc',
+                background: selectedTopPickVariant?.variant_id === variant.variant_id ? 'white' : '#fff',
+                fontWeight: 600,
+                cursor: 'pointer',
+                minWidth: 60,
+              }}
+            >
+              {sizeLabel}
+            </button>
+          );
+        })}
+      </div>
+      <button
+        onClick={() => {
+          if (selectedTopPickVariant) {
+            addToCart({
+              id: topPickProduct.variant_id,
+              variant_id: selectedTopPickVariant.variant_id,
+              variant_title: selectedTopPickVariant.variant_title || selectedTopPickVariant.title,
+              handle: topPickProduct.handle,
+              title: selectedTopPickVariant.title || topPickProduct.title,
+              price: Number(selectedTopPickVariant.price),
+              compare_at_price: Number(selectedTopPickVariant.compare_at_price) || Number(selectedTopPickVariant.price),
+              image: selectedTopPickVariant.featured_image?.src || topPickProduct.image,
+            });
+            setShowTopPickSizeModal(false);
+            setSelectedTopPickVariant(null);
+            setTopPickProduct(null);
+          }
+        }}
+        disabled={!selectedTopPickVariant}
+        style={{
+          width: '100%',
+          background: 'black',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          padding: '10px 0',
+          fontWeight: 700,
+          fontSize: 16,
+          cursor: selectedTopPickVariant ? 'pointer' : 'not-allowed',
+          opacity: selectedTopPickVariant ? 1 : 0.6,
+          marginBottom: 8,
+        }}
+      >
+        Add to Cart
+      </button>
+      <button
+        onClick={() => setShowTopPickSizeModal(false)}
+        style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          background: 'transparent',
+          border: 'none',
+          fontSize: 18,
+          cursor: 'pointer',
+          color: '#888',
+        }}
+        aria-label="Close"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
     </>
   );
 };

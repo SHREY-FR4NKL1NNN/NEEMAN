@@ -47,15 +47,23 @@ const ProductCard = ({ product, addToCart, isInCart, getItemQuantity }) => {
                 <div className="px-4 py-1">
                     <button
                         className="w-full flex items-center text-xs justify-center gap-2 border border-[#eee4d9] bg-[#f9f5f0] text-[#b9976f] font-semibold py-1"
-                        onClick={() => addToCart(product)}
-                        disabled={isInCart(product.id)}
+                        onClick={() => {
+                            const variant = product.variants[0]; // Or use selected variant if you have size selection
+                            addToCart({
+                                id: product.id,
+                                variant_id: variant.id,
+                                variant_title: variant.title,
+                                handle: product.handle,
+                                title: product.title,
+                                price: Number(variant.price),
+                                compare_at_price: Number(variant.compare_at_price) || Number(variant.price),
+                                image: product.images[0]?.src,
+                                // ...any other fields you want
+                            });
+                        }}
+                        disabled={isInCart(product.id, product.variants[0]?.id)}
                     >
-                        <svg width="15" height="15" fill="none" stroke="#b9976f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                            <circle cx="9" cy="21" r="1" />
-                            <circle cx="20" cy="21" r="1" />
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                        </svg>
-                        {isInCart(product.id) ? "In Cart" : "Add to Cart"}
+                        {isInCart(product.id, product.variants[0]?.id) ? "In Cart" : "Add to Cart"}
                     </button>
                 </div>
             </div>

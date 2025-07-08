@@ -27,6 +27,9 @@ const ProductSlider = ({ handles = {} }) => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [activeVariants, setActiveVariants] = useState({}); // { idx: variantProduct }
   const [swatchScroll, setSwatchScroll] = useState({}); // { idx: scrollIndex }
+  const [showSizeModal, setShowSizeModal] = useState(false);
+  const [sizeModalProduct, setSizeModalProduct] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const visibleCount = 4;
   const swatchVisibleCount = 3;
   const { addToCart, isInCart, getItemQuantity } = useCart();
@@ -265,7 +268,11 @@ const ProductSlider = ({ handles = {} }) => {
                         <span className="text-green-600 text-base font-semibold">{discount}% OFF</span>
                       )}
                     </div>
-                    <button className="mt-2 w-full flex items-center justify-center gap-2 bg-black text-white py-3 font-semibold text-base hover:bg-gray-900 transition" onClick={() => handleAddToCart(active)} disabled={isInCart(active.id)}>
+                    <button className="mt-2 w-full flex items-center justify-center gap-2 bg-black text-white py-3 font-semibold text-base hover:bg-gray-900 transition" onClick={() => {
+                      setSizeModalProduct(active); // active is the current product object
+                      setShowSizeModal(true);
+                      setSelectedVariant(null);
+                    }} disabled={isInCart(active.variant_id)}>
                       <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6.7395 18.959C7.42986 18.959 7.9895 18.3993 7.9895 17.709C7.9895 17.0186 7.42986 16.459 6.7395 16.459C6.04915 16.459 5.4895 17.0186 5.4895 17.709C5.4895 18.3993 6.04915 18.959 6.7395 18.959Z" fill="white"></path>
                         <path d="M14.8645 18.959C15.5549 18.959 16.1145 18.3993 16.1145 17.709C16.1145 17.0186 15.5549 16.459 14.8645 16.459C14.1741 16.459 13.6145 17.0186 13.6145 17.709C13.6145 18.3993 14.1741 18.959 14.8645 18.959Z" fill="white"></path>
@@ -273,7 +280,7 @@ const ProductSlider = ({ handles = {} }) => {
                         <path d="M14.0208 6H18.8333" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         <path d="M16.3542 3.66675V8.47925" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                       </svg>
-                      {isInCart(active.id) ? "IN CART" : "ADD TO CART"}
+                      {isInCart(active.variant_id) ? "IN CART" : "ADD TO CART"}
                     </button>
                   </div>
                 </div>
@@ -293,6 +300,105 @@ const ProductSlider = ({ handles = {} }) => {
         </Link>
       </div>
       <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
+      {showSizeModal && sizeModalProduct && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'rgba(0,0,0,0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    }}
+    onClick={() => setShowSizeModal(false)}
+  >
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: 8,
+        padding: 24,
+        minWidth: 280,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+        position: 'relative',
+      }}
+      onClick={e => e.stopPropagation()}
+    >
+      <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>Select Size</h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {sizeModalProduct.variants.map(variant => (
+          <button
+            key={variant.id}
+            onClick={() => setSelectedVariant(variant)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 4,
+              border: selectedVariant?.id === variant.id ? '2px solid #808080' : '2px solid black',
+              background: selectedVariant?.id === variant.id ? '#f9f5f0' : '#fff',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {variant.title}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => {
+          if (selectedVariant) {
+            addToCart({
+              id: sizeModalProduct.id,
+              variant_id: selectedVariant.id,
+              variant_title: selectedVariant.title,
+              handle: sizeModalProduct.handle,
+              title: sizeModalProduct.title,
+              price: Number(selectedVariant.price),
+              compare_at_price: Number(selectedVariant.compare_at_price) || Number(selectedVariant.price),
+              image: selectedVariant.featured_image?.src || sizeModalProduct.images?.[0]?.src || '',
+            });
+            setShowSizeModal(false);
+            setSelectedVariant(null);
+            setSizeModalProduct(null);
+            setIsCartOpen(true);
+          }
+        }}
+        disabled={!selectedVariant}
+        style={{
+          width: '100%',
+          background: 'black',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          padding: '10px 0',
+          fontWeight: 700,
+          fontSize: 16,
+          cursor: selectedVariant ? 'pointer' : 'not-allowed',
+          opacity: selectedVariant ? 1 : 0.6,
+        }}
+      >
+        Add to Cart
+      </button>
+      <button
+        onClick={() => setShowSizeModal(false)}
+        style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          background: 'transparent',
+          border: 'none',
+          fontSize: 18,
+          cursor: 'pointer',
+          color: '#888',
+        }}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };

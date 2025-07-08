@@ -191,7 +191,7 @@ function Collections() {
         if (inView && hasMore && !loading && page > 1) {
             fetchProductsPage(page);
         }
-    }, [inView]);
+    }, [inView, hasMore, loading]);
 
     useEffect(() => {
         if (inView && hasMore && !loading) {
@@ -500,8 +500,7 @@ function Collections() {
                             <ProductCard
                                 key={product.id}
                                 product={product}
-
-                                addToCart={handleAddToCart} /* Use the new handler */
+                                addToCart={handleAddToCart}
                                 isInCart={isInCart}
                                 getItemQuantity={getItemQuantity}
                             />
