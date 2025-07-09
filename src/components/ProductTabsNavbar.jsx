@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 const tabs = [
   {
@@ -54,24 +54,131 @@ const tabs = [
   },
 ];
 
-const ProductTabsNavbar = () => {
-  const [activeTab, setActiveTab] = useState(0);
+const ProductTabsNavbar = ({ activeTab, onTabChange, features = [] }) => {
+  const featuresRef = useRef(null);
+  const reviewsRef = useRef(null);
+
+  // Scroll to section on tab click
+  const handleTabClick = (idx) => {
+    onTabChange(idx);
+    if (idx === 0 && featuresRef.current) {
+      featuresRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (idx === 1 && reviewsRef.current) {
+      reviewsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Scrollspy: set active tab based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!featuresRef.current || !reviewsRef.current) return;
+      const featuresTop = featuresRef.current.getBoundingClientRect().top;
+      const reviewsTop = reviewsRef.current.getBoundingClientRect().top;
+      if (featuresTop <= 100 && reviewsTop > 100) {
+        onTabChange(0);
+      } else if (reviewsTop <= 100) {
+        onTabChange(1);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [onTabChange]);
 
   return (
-    <nav className="w-full flex border-b border-[#e5e5e5] bg-white shadow-sm sticky top-0 z-30">
-      {tabs.map((tab, idx) => (
-        <button
-          key={tab.label}
-          className={`flex-1 flex flex-col items-center py-8 transition-all duration-200 focus:outline-none
-            ${activeTab === idx ? 'bg-[#f2ebdf] text-[#8a6728] font-semibold border-b-2 border-[#8a6728]' : 'bg-white text-black'}
-          `}
-          onClick={() => setActiveTab(idx)}
-        >
-          <span className="mb-2">{tab.icon}</span>
-          <span className="text-base tracking-wide">{tab.label}</span>
-        </button>
-      ))}
-    </nav>
+    <>
+      <nav className="w-full flex border-b border-[#e5e5e5] bg-white shadow-sm sticky top-0 z-50 h-[96px]">
+        {tabs.map((tab, idx) => (
+          <button
+            key={tab.label}
+            className={`flex-1 flex flex-col items-center h-full py-0 transition-all duration-200 focus:outline-none
+              ${activeTab === idx ? 'bg-[#f2ebdf] text-[#8a6728] font-semibold border-b-2 border-[#8a6728]' : 'bg-white text-black'}
+            `}
+            onClick={() => handleTabClick(idx)}
+          >
+            <span className="mb-2">{tab.icon}</span>
+            <span className="text-base tracking-wide">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+      {/* Features Section (always rendered) */}
+      <div ref={featuresRef}></div>
+      <div className="max-w-[1300px] w-full my-0 mx-[128px]">
+        <div className="w-full flex flex-col gap-4 pt-8 px-0 pb-0">
+          {[0, 1, 2, 3].map((i, idx) => (
+            <React.Fragment key={i}>
+              <div
+                className={`flex items-center gap-6 bg-[#f6f3ee] shadow-sm ${idx % 2 === 1 ? 'flex-row-reverse' : 'flex-row'}`}
+                style={{ height: "424.77px" }}
+              >
+                <div className="flex-1 h-full">
+                  <img
+                    src={features[i]?.image || ''}
+                    alt={`feature${i + 1}`}
+                    className="w-full h-full object-cover"
+                    style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                  />
+                </div>
+                <div className="flex-1 flex items-center h-full">
+                  <span className="text-lg text-[#222] font-medium leading-snug">
+                    {features[i]?.text || 'Product feature not available'}
+                  </span>
+                </div>
+              </div>
+              <div
+                style={{
+                  height: "1px",
+                  background: "linear-gradient(180deg, rgba(217, 217, 217, 1), rgba(217, 217, 217, 1) 97%)",
+                  margin: "32px 0px"
+                }}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      {/* Reviews Section (always rendered) */}
+      <div ref={reviewsRef}></div>
+      <div className="w-full max-w-[1100px] mx-auto my-12">
+        <h2 className="text-4xl font-serif font-bold text-center mb-10">Customer Reviews</h2>
+        <div className="flex flex-row justify-between items-center gap-8">
+          {/* Left: Average */}
+          <div className="flex flex-col items-center flex-1">
+            <div className="flex items-center mb-2">
+              {/* Render 4.5 stars */}
+              {[1,2,3,4,5].map(i => (
+                <svg key={i} width="28" height="28" fill={i <= 4 ? '#c5a97c' : 'none'} stroke="#c5a97c" strokeWidth="2" viewBox="0 0 24 24">
+                  <polygon points="12,2 15,9 22,9 17,14 18,21 12,17 6,21 7,14 2,9 9,9" />
+                </svg>
+              ))}
+              <span className="ml-2 text-xl font-semibold">4.64 out of 5</span>
+            </div>
+            <div className="text-lg">Based on 670 reviews <span className="inline-block align-middle text-teal-500">✔️</span></div>
+          </div>
+          {/* Center: Breakdown */}
+          <div className="flex flex-col flex-1 items-center">
+            {[{stars:5,count:491},{stars:4,count:125},{stars:3,count:50},{stars:2,count:2},{stars:1,count:2}].map((row, idx) => (
+              <div key={row.stars} className="flex items-center w-full mb-2">
+                <span className="mr-2 text-[#c5a97c] font-bold">{'★'.repeat(row.stars)}</span>
+                <div className="flex-1 h-3 bg-gray-200 rounded mx-2 overflow-hidden">
+                  <div
+                    className="h-full bg-[#c5a97c] rounded"
+                    style={{ width: `${(row.count/491)*100}%` }}
+                  />
+                </div>
+                <span className="ml-2 w-8 text-right">{row.count}</span>
+              </div>
+            ))}
+          </div>
+          {/* Right: Buttons */}
+          <div className="flex flex-col flex-1 items-center gap-4">
+            <button className="w-56 py-3 bg-black text-white font-bold text-lg rounded-md tracking-wide transition-colors duration-200 hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#c5a97c]">WRITE A REVIEW</button>
+            <button className="w-56 py-3 border-2 border-black text-black font-bold text-lg rounded-md tracking-wide transition-colors duration-200 hover:bg-[#f6f3ee] focus:outline-none focus:ring-2 focus:ring-[#c5a97c]">Ask a question</button>
+          </div>
+        </div>
+      </div>
+      {activeTab !== 0 && (
+        <div className="max-w-[1300px] w-full mx-auto my-8 text-center text-gray-500 text-lg">Coming soon...</div>
+      )}
+    </>
   );
 };
 

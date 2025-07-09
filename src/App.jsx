@@ -17,6 +17,7 @@ import Navbar from "./components/Navbar";
 import CollectionsPage from './pages/CollectionsPage';
 import BestSellerSlider from './components/bestsellerslider';
 import Footer from "./components/Footer";
+import ProductPage from './pages/ProductPage';
 
 const collections = [
   {
@@ -171,6 +172,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/collection/:handle" element={<CollectionsPage />} />
+        <Route path="/products/:handle" element={<ProductPage />} />
+        <Route path="/product/:handle" element={<ProductPage />} />
       </Routes>
     </CartProvider>
   );
