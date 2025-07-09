@@ -66,13 +66,18 @@ const NavbarWithScrollLoader = () => {
                     {['NEW', 'MEN', 'WOMEN', 'ABOUT US', 'OFFERS'].map((item) => (
                         <button
                             key={item}
-                            className="flex items-center gap-1 text-sm font-light relative"
+                            className={
+                                `flex items-center gap-1 text-sm font-light relative px-2 py-1
+                                transition-colors duration-300 ease-in-out
+                                hover:bg-gray-100 rounded
+                                group`
+                            }
                             onMouseEnter={() => ['NEW', 'MEN', 'WOMEN', 'OFFERS'].includes(item) && handleNavLinkEnter(item)}
                             onMouseLeave={() => ['NEW', 'MEN', 'WOMEN', 'OFFERS'].includes(item) && handleNavLinkLeave()}
                         >
                             {item}
                             {(item === 'NEW' || item === 'MEN' || item === 'WOMEN' || item === 'OFFERS') && (
-                                <span className="text-xs">
+                                <span className="text-xs transition-transform duration-300 ease-in-out transform group-hover:rotate-180">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" id="Keyboard-Arrow-Down--Streamline-Rounded-Material" height={18} width={18} ><desc>{"\n    Keyboard Arrow Down Streamline Icon: https://streamlinehq.com\n  "}</desc><path fill="#000000" d="M9.0001125 11.325c-0.07500000000000001 0 -0.1437375 -0.012487500000000002 -0.20625000000000002 -0.037500000000000006 -0.062475 -0.0250125 -0.1249875 -0.06873749999999999 -0.1875 -0.13124999999999998l-3.7125000000000004 -3.7125000000000004c-0.11249999999999999 -0.11249999999999999 -0.1656 -0.24686249999999998 -0.159375 -0.40312499999999996 0.0062625 -0.1562625 0.06562499999999999 -0.290625 0.17812499999999998 -0.40312499999999996 0.11249999999999999 -0.11249999999999999 0.2469 -0.16875 0.40312499999999996 -0.16875 0.1562625 0 0.290625 0.056249999999999994 0.40312499999999996 0.16875l3.28125 3.3000000000000003 3.3000000000000003 -3.3000000000000003c0.11249999999999999 -0.11249999999999999 0.24375000000000002 -0.1656375 0.39375000000000004 -0.159375 0.15000000000000002 0.0062625 0.28125 0.06562499999999999 0.39375000000000004 0.17812499999999998 0.11249999999999999 0.11249999999999999 0.16875 0.24686249999999998 0.16875 0.40312499999999996 0 0.1562625 -0.056249999999999994 0.290625 -0.16875 0.40312499999999996l-3.6937499999999996 3.6937499999999996c-0.062475 0.0625125 -0.1249875 0.1062375 -0.1875 0.13124999999999998 -0.062475 0.0250125 -0.13124999999999998 0.037500000000000006 -0.20625000000000002 0.037500000000000006Z" strokeWidth={0.375} /></svg>
                                 </span>
                             )}
