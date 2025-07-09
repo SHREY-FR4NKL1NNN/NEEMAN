@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from 'react-router-dom';
 import ProductTabsNavbar from '../components/ProductTabsNavbar';
+import { useCart } from '../context/CartContext';
+import CartSidebar from './Cart';
+import Navbar from '../components/Navbar';
 
 // Add custom CSS for scrollbar hiding
 const scrollbarHideStyles = `
-  .scrollbar-hide {
+  .scrollbar-hide {w
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
@@ -13,9 +17,13 @@ const scrollbarHideStyles = `
 `;
 
 const ProductPage = () => {
-  // const { productId } = useParams();
-  // const navigate = useNavigate();
-  const productId = 'elevate-low-top'; // Hardcoded for standalone testing
+  // All hooks at the top
+  const { addToCart, isInCart, getItemQuantity } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+  // Move all hooks to the top, before any conditional return
+  const { handle: productId } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +31,6 @@ const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [windowIndex, setWindowIndex] = useState(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [loadedImages, setLoadedImages] = useState(new Set());
   const mainImageScrollRef = useRef(null);
   const detailsRef = useRef(null);
@@ -43,6 +50,9 @@ const ProductPage = () => {
   // State for color variants
   const [colorVariants, setColorVariants] = useState([]);
   const [colorLoading, setColorLoading] = useState(true);
+
+  // Add activeTab state for tabs
+  const [activeTab, setActiveTab] = useState(0);
 
   const getTopStart = (selectedImage, product) => {
     if (!product?.images) return 0;
@@ -219,6 +229,7 @@ const ProductPage = () => {
               url: image.src,
               alt: `${data.product.title} view ${index + 1}`
             })),
+            tags: (typeof data.product.tags === 'string' ? data.product.tags.split(',').map(tag => tag.trim()).filter(Boolean) : Array.isArray(data.product.tags) ? data.product.tags : []),
             category: data.product.product_type || "Shoes",
             color: extractColor(data.product.title),
             material: "Premium materials",
@@ -302,23 +313,16 @@ const ProductPage = () => {
     }
   }, [product?.images]);
 
+  // Ensure seamless infinite scroll for thumbnail carousel
   useEffect(() => {
-    const node = thumbStackRef.current;
-    if (!node || !product?.images) return;
-    const total = product.images.length;
+    const total = product?.images?.length || 0;
     const middle = total * 2;
     const mod = (n, m) => ((n % m) + m) % m;
-    const onEnd = () => {
-      // Only reset if more than one full copy away from the middle
-      if (windowIndex < total || windowIndex >= total * 3) {
-        const newIndex = middle + mod(windowIndex, total);
-        setThumbTransition(false);
-        setWindowIndex(newIndex);
-        requestAnimationFrame(() => setThumbTransition(true));
-      }
-    };
-    node.addEventListener('transitionend', onEnd);
-    return () => node.removeEventListener('transitionend', onEnd);
+    if (windowIndex !== null && total > 0 && (windowIndex < total || windowIndex >= total * 3)) {
+      setThumbTransition(false);
+      setWindowIndex(middle + mod(windowIndex, total));
+      requestAnimationFrame(() => setThumbTransition(true));
+    }
   }, [windowIndex, product?.images]);
 
   const handleViewOffersClick = () => {
@@ -380,14 +384,21 @@ const ProductPage = () => {
       return;
     }
     setIsAddingToCart(true);
-    console.log('Added to cart:', {
-      product: product.name,
-      size: selectedSize,
+    // Build the product object as expected by the cart
+    const cartProduct = {
+      ...product,
+      id: selectedSize.id || product.id,
+      variant_id: selectedSize.id,
+      handle: product.handle,
+      title: `${product.name} : ${product.color}`,
+      price: selectedSize.price,
       quantity: quantity,
-      price: product.price
-    });
-    setShowCartSidebar(true);
-    setTimeout(() => setIsAddingToCart(false), 500);
+      image: product.images && product.images.length > 0 ? product.images[0].url : '',
+      variant_title: selectedSize.uk ? `UK ${selectedSize.uk}` : '',
+    };
+    addToCart(cartProduct);
+    openCart();
+    setIsAddingToCart(false);
   };
 
   const calculateDiscount = () => {
@@ -407,8 +418,63 @@ const ProductPage = () => {
 
     return (
     <div className="min-h-screen bg-white">
+      <Navbar />
+      {/* Breadcrumb Navigation Bar */}
+      {(() => {
+        let lastTag = product.tags && product.tags.length > 0 ? product.tags[product.tags.length - 1] : null;
+        let displayTag = lastTag && lastTag.includes(":") ? lastTag.split(":").pop().trim() : lastTag;
+        if (displayTag) {
+          displayTag = displayTag.charAt(0).toUpperCase() + displayTag.slice(1);
+        }
+        return (
+          <div className="max-w-[1300px] w-full mx-auto bg-white sticky top-[64px] z-40" style={{zIndex: 40, position: 'sticky', top: 64, background: '#fff'}}>
+            <nav className="py-4 text-sm text-gray-600 flex items-center gap-2">
+              {/* Home Icon */}
+              <a href="/" className="flex items-center hover:underline text-gray-700 font-medium" aria-label="Home">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" className="mr-1"><path d="M3 11.5L12 4l9 7.5" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 22V12h6v10" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </a>
+              <span className="mx-1">&#8250;</span>
+              <a href="/collection/all" className="hover:underline text-gray-700 font-semibold">All Products</a>
+              {displayTag && (
+                <>
+                  <span className="mx-1">&#8250;</span>
+                  <a href={`/collection/${displayTag.toLowerCase()}`} className="hover:underline text-gray-700 font-semibold">{displayTag}</a>
+                </>
+              )}
+              {product.category && (
+                <>
+                  <span className="mx-1">&#8250;</span>
+                  <a href={`/collection/${product.category.toLowerCase()}`} className="hover:underline text-gray-700 font-semibold">{product.category}</a>
+                </>
+              )}
+              <span className="mx-1">&#8250;</span>
+              <span className="text-gray-400 font-semibold">{product.name} : {product.color}</span>
+            </nav>
+          </div>
+        );
+      })()}
       <style dangerouslySetInnerHTML={{ __html: scrollbarHideStyles }} />
-      <section className="flex flex-row gap-3 max-w-[1300px] w-full mx-auto py-10 items-stretch bg-white">
+      <style>
+        {`
+          .colorSwatchUp {
+            position: relative !important;
+            top: -4px !important;
+            border: 1px solid black !important;
+            border-bottom: 6px solid black !important;
+            height: 54px !important;
+          }
+          .sizeSelectedUp {
+            position: relative !important;
+            top: -4px !important;
+            border: 1px solid black !important;
+            border-bottom: 6px solid black !important;
+            height: 54px !important;
+          }
+        `}
+      </style>
+      <section className="flex flex-row gap-3 max-w-[1300px] w-full mx-auto  items-stretch bg-white"
+        style={{ marginTop: '112px' }}
+      >
         {/* Column 1: Product Images */}
         <div className="flex flex-row items-start">
           {/* Thumbnails with Scroll Controls */}
@@ -417,7 +483,7 @@ const ProductPage = () => {
             {product.images && product.images.length > VISIBLE_THUMBNAILS && (
               <button 
                 onClick={() => handleThumbnailScroll('up')}
-                className="w-[102px] h-8 flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity duration-200 mb-2"
+                className="w-[102px] h-8 flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity duration-200 "
                 style={{marginBottom: '8px'}}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#495057" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -461,7 +527,7 @@ const ProductPage = () => {
             {product.images && product.images.length > VISIBLE_THUMBNAILS && (
               <button 
                 onClick={() => handleThumbnailScroll('down')}
-                className="w-[102px] h-8 flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity duration-200 mt-2"
+                className="w-[102px] h-8 flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity duration-200 "
                 style={{marginTop: '8px'}}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#495057" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -472,7 +538,7 @@ const ProductPage = () => {
           </div>
 
           {/* Main Image Display */}
-          <div className="w-[831.98px] bg-white rounded-none flex flex-col">
+          <div className="w-[748px] bg-white rounded-none flex flex-col">
             <div
               className="overflow-y-auto scrollbar-hide"
               style={{ height: '2690px', scrollSnapType: 'y mandatory' }}
@@ -482,13 +548,13 @@ const ProductPage = () => {
                 {getInfiniteStackImages(product.images).map((image, i) => (
                   <div
                     key={i}
-                    className={`w-[94%] h-[468px]${i < getInfiniteStackImages(product.images).length - 1 ? ' mb-[70px]' : ''} ml-[32px] rounded-none shadow-none flex items-center mx-auto`}
-                    style={{ scrollSnapAlign: 'start' }}
+                    className={`w-[94%] h-[468px] mb-[70px] ml-[32px] rounded-none shadow-none flex items-center mx-auto`}
+                    style={{ scrollSnapAlign: 'start', height: '468px' }}
                   >
                     <img
                       src={image.url}
                       alt={image.alt}
-                      className="object-fill w-full h-full rounded-none"
+                      className="object-fill w-full h-[468px] rounded-none"
                     />
                   </div>
                 ))}
@@ -500,76 +566,204 @@ const ProductPage = () => {
         {/* Column 2: Product Details */}
         <div className="flex-1 p-0 pl-2 max-w-[418px] flex flex-col items-start" ref={detailsRef}>
           {/* Product Badge */}
-          <div className="mb-2 flex gap-2">
+          <div className=" flex gap-2">
             
           </div>
 
           {/* Product Title */}
-          <h1 className="text-[2rem] mb-3 text-[#222] leading-tight font-bold">{product.name}</h1>
+          <div className="w-full flex flex-row items-center mb-3 mt-[16px]">
+            <div className="w-[70%] flex items-center">
+              <h1
+                className="text-[22px] text-black font-semibold"
+                style={{
+                  letterSpacing: '.02em',
+                  fontFamily: 'abril_displayregular_',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                {product.name}
+              </h1>
+            </div>
+            <div className="w-[30%]"></div>
+          </div>
           
           {/* Price Section */}
-          <div className="flex items-center gap-4 mb-1">
-            <span className="text-[1.3rem] font-bold text-[#222]">
+          <div className="flex items-center  mb-1">
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: '16px',
+                letterSpacing: '0.32px',
+                color: '#222',
+                textTransform: 'none',
+                lineHeight: '24px',
+              }}
+            >
               Rs. {product.price.toLocaleString()}
             </span>
-            <span className="text-[1.1rem] text-[#bbb] ml-2">
-              <span>MRP </span>
-              <span className="line-through">₹{product.mrp.toLocaleString()}</span>
+            <span
+              className="text-[1.1rem] text-[#bbb]"
+              style={{
+                marginLeft: '16px',
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span
+                style={{
+                  color: '#B3B3B3',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  letterSpacing: 0,
+                }}
+              >
+                MRP 
+              </span>
+              <span className="font-bold text-base tracking-[0.32px] text-[#222] normal-case leading-6">
+                <span
+                  className="line-through"
+                  style={{
+
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    letterSpacing: '0.32px',
+                 color: '#B3B3B3' ,
+                    textTransform: 'none',
+                    lineHeight: '24px',
+                  }}
+                >
+                  ₹{product.mrp.toLocaleString()}
+                </span>
+              </span>
             </span>
-            <span className="text-[1.1rem] text-[#1ca14a] font-bold ml-2">
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: '16px',
+                color: 'var(--nmns-color-positive-600, #089657)',
+                textTransform: 'none',
+                marginLeft: '16px',
+                // Remove marginTop to vertically center
+              }}
+            >
               {calculateDiscount()}% OFF
             </span>
           </div>
-          <p className="text-sm text-[#888] mb-[18px]">MRP Inclusive of all taxes</p>
+          <p
+            style={{
+              fontFamily: 'Open Sans',
+              fontSize: '14px',
+              fontWeight: 500,
+              lineHeight: '20px',
+              letterSpacing: '0.32px',
+              textAlign: 'left',
+              color: '#999999',
+              padding: '0px 0px 8px 0px',
+            }}
+          >
+            MRP Inclusive of all taxes
+          </p>
 
           {/* EMI Section */}
-          <div className="bg-[#f1eadf] border-2 border-[#bd9966] rounded-none w-full max-w-full letter-spacing-normal px-5 py-[2px] relative mb-[18px] flex flex-col gap-0 items-start shadow-sm">
-            <div className="flex items-baseline gap-[2px] text-[1.15rem] text-black font-bold">
-              <span>Pay</span>
-              <span className="font-bold">₹</span>
-              <span className="text-[1.25rem] font-bold text-black leading-normal ml-[2px]">{Math.floor(product.price/3)}</span>
-              <span className="font-bold text-[1.05rem]">/month</span>
+          <div
+            style={{
+              background: '#f1eadf',
+              borderRadius: 0,
+              width: '100%',
+              maxWidth: '100%',
+              border: '1.248px solid #bd9966',
+              letterSpacing: 'normal',
+              padding: '12px',
+              position: 'relative',
+              margin: '5px 0 8px !important' 
+            }}
+            className="flex flex-col gap-0 items-start "
+          >
+            <div>
+              <div
+                className="flex items-baseline gap-[2px] text-black"
+                style={{
+                  paddingBottom: '1px',
+                  fontFamily: 'opensans-medium',
+                  fontSize: '19px',
+                  alignItems: 'center',
+                  flexWrap: 'nowrap',
+                  fontWeight: 500,
+                  lineHeight: '25px',
+                  paddingTop: 0,
+                }}
+              >
+               <span className="text-black mb-0 font-bold">Pay</span>
+                <span class="text-black font-bold leading-normal">₹</span>
+                <span className="text-[1.25rem] font-bold text-black leading-normal ml-[2px]">{Math.ceil(product.price/3)}</span>
+                <span className="font-bold text-[1.05rem]">/month</span>
+              </div>
             </div>
-            <div className="text-[#666] flex items-center text-base mt-[2px] gap-1">
-              0% Interest EMI via
-              <img src="https://preemi.snapmint.com/assets/whitelable/UPI-Logo-vector%201.svg" alt="upi" className="w-[35px] mx-[6px] -mb-1 align-middle" />
+            <div>
+              <div className="text-[#666] flex items-center text-base  gap-1">
+                0% Interest EMI via
+                <img src="https://preemi.snapmint.com/assets/whitelable/UPI-Logo-vector%201.svg" alt="upi" className="w-[35px] mx-[6px] -mb-1 align-middle" />
+              </div>
             </div>
           </div>
 
+          <div style={{ borderTop: '2px solid #F2F2F2', width: '100%', marginTop: '15px' }} />
+
           {/* Features Section (after EMI) */}
-          <div className="w-full flex flex-col gap-4 my-6">
-            <div className="flex items-center gap-4">
-              <img src="https://neemans.com/cdn/shop/files/Truly_versatile._From_semi-formal_to_smart-casual..svg?v=1718808638" alt="feature1" className="w-8 h-8" />
+          <div className="w-full flex flex-col gap-0 my-0">
+            <div style={{ display: 'flex', alignItems: 'center', margin: '2% 0%' }}>
+              <img src="https://neemans.com/cdn/shop/files/Truly_versatile._From_semi-formal_to_smart-casual..svg?v=1718808638" alt="feature1" style={{ width: '50px', margin: '2px' }} />
               <span className="text-base text-[#222]">Versatile design that pairs with relaxed & semi-casual looks</span>
             </div>
-            <div className="flex items-center gap-4">
-              <img src="https://neemans.com/cdn/shop/files/Breathable_Knit_Fabric.svg?v=1686991691" alt="feature2" className="w-8 h-8" />
+            <div style={{ display: 'flex', alignItems: 'center', margin: '2% 0%' }}>
+              <img src="https://neemans.com/cdn/shop/files/Breathable_Knit_Fabric.svg?v=1686991691" alt="feature2" style={{ width: '50px', margin: '2px' }} />
               <span className="text-base text-[#222]">Classic low-top, reimagined in breathable knit fabric</span>
             </div>
-            <div className="flex items-center gap-4">
-              <img src="https://neemans.com/cdn/shop/files/Cushioned_footbed_for_superior_comfort.svg?v=1719840484" alt="feature3" className="w-8 h-8" />
+            <div style={{ display: 'flex', alignItems: 'center', margin: '2% 0%' }}>
+              <img src="https://neemans.com/cdn/shop/files/Cushioned_footbed_for_superior_comfort.svg?v=1719840484" alt="feature3" style={{ width: '50px', margin: '2px' }} />
               <span className="text-base text-[#222]">Cushioned sole for stress-free movement</span>
             </div>
           </div>
 
-          <hr className="border-gray-400 my-[10px] w-full" />
+          <div
+            style={{
+              height: '1px',
+              background: 'linear-gradient(180deg, rgba(217, 217, 217, 1), rgba(217, 217, 217, 1) 97%)',
+              margin: '13px 0px',
+              width: '100%'
+            }}
+          />
 
           {/* Color Variants Swatches */}
           {colorVariants.length > 1 && (
             <>
-              <div className="mb-1 text-base font-semibold text-[#222]">
+              <div 
+                className="mb-1"
+                style={{
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  lineHeight: '19px',
+                  textAlign: 'left',
+                  letterSpacing: '0.02em',
+                  color: '#5F5F5F',
+                  marginBottom:'8px'
+                }}
+              >
                 Color: {product.color || (colorVariants.find(v => v.isCurrent)?.color) || ''}
               </div>
-              <div className="flex gap-2 mb-4">
+              <div className="flex  mb-4 ">
                 {colorVariants.map(variant => (
                   <img
                     key={variant.id}
                     src={getSwatchUrl(variant.image)}
                     alt={variant.color}
-                    width={48}
-                    height={48}
-                    className={`w-12 h-12 object-cover rounded border-0 ${variant.isCurrent ? 'border-black' : 'border-gray-200'} cursor-pointer transition-all duration-150`}
-                    style={{ boxShadow: variant.isCurrent ? '0 0 0 2px #222' : undefined }}
+                    width={50}
+                    height={50}
+                    className={`w-[50px] h-[50px] object-cover cursor-pointer transition-all duration-150  ${variant.isCurrent ? 'colorSwatchUp' : ''}`}
+                    style={{ marginRight:'22px', marginLeft:'8px',backgroundColor: '#f2f2f2', border: '1px solid var(--border-color)',boxShadow: variant.isCurrent ? '0 0 0 2px #222' : undefined }}
                     onClick={() => handleColorClick(variant)}
                   />
                 ))}
@@ -580,13 +774,13 @@ const ProductPage = () => {
           {/* Size Selection */}
           <div className="my-7">
             <h4 className="text-base mb-3 text-[#495057] font-semibold">Select Size (UK):</h4>
-            <div className="flex gap-5 flex-wrap">
+            <div className="flex gap-7 flex-wrap">
               {product.sizes.map((size) => (
                 <button
                   key={size.uk}
                   className={`py-3 px-4 border-[1.5px] rounded-none text-sm font-medium min-w-[50px] text-center relative transition-all duration-300 cursor-pointer
                     ${selectedSize?.uk === size.uk
-                      ? 'bg-[#222] text-white border-[#222]'
+                      ? 'bg-white text-[#222] border-[#222] sizeSelectedUp'
                       : 'bg-white text-[#495057] border-[#dee2e6] hover:border-[#adb5bd] hover:bg-[#f8f9fa]'}
                   `}
                   onClick={() => setSelectedSize(size)}
@@ -597,7 +791,15 @@ const ProductPage = () => {
             </div>
           </div>
 
-          <hr className="border-gray-400 my-[10px] w-full" />
+          <div
+            style={{
+              height: '1px',
+              background: 'linear-gradient(180deg, rgba(217, 217, 217, 1), rgba(217, 217, 217, 1) 97%)',
+              margin: '15px 0px',
+              width: '100%',
+              marginBottom:'0px'
+            }}
+          />
 
           {/* Action Buttons */}
           <div className="flex gap-[18px] w-full my-6">
@@ -625,19 +827,57 @@ const ProductPage = () => {
           </div>
 
           {/* Offer Box */}
-          <div className="bg-[#eaf6ef] border border-[#d2e7db] rounded-none p-[18px] mb-[10px] mt-0 flex flex-col w-full min-h-[44px] box-border justify-center">
-            <div className="flex items-center justify-center w-full gap-[18px] min-h-[28px]">
-              <span className="whitespace-nowrap text-sm font-semibold text-[#495057] leading-tight">
+          <div className="bg-[#eaf6ef] border border-[#d2e7db] rounded-none p-[18px] mb-[10px] mt-0 w-full min-h-[44px] box-border justify-center"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px 8px',
+              background: 'var(--nmns-color-positive-50, #E7F3EC)',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1 }}>
+              <span className="whitespace-nowrap text-sm font-semibold text-[#495057] leading-tight"
+                style={{
+                  color: 'var(--nmns-color-primary-800-default, #222)',
+                  fontSize: '16px',
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  lineHeight: '140%',
+                  marginBottom: '4px'
+                }}
+              >
                 Get this for as low as{' '}
                 <span className="text-[#1ca14a] font-bold">
                   Rs. {Math.round(product.price * 0.90)}
                 </span>
               </span>
-              <span className="text-[#d97706] font-bold text-sm cursor-pointer ml-[18px] whitespace-nowrap inline-block" onClick={handleViewOffersClick}>
-                VIEW OFFERS ›
-              </span>
+              <div className="text-[#666] text-base font-semibold "
+                style={{
+                  color: 'var(--nmns-color-primary-600, #616161)',
+                  fontSize: '14px',
+                  fontStyle: 'normal',
+                  fontWeight: 600,
+                  lineHeight: '20px',
+                  letterSpacing: '0.32px'
+                }}
+              >
+                with these offers.
+              </div>
             </div>
-            <div className="text-[#666] text-base font-semibold mt-[2px]">with these offers.</div>
+            <span className="text-[#d97706] font-bold text-sm cursor-pointer ml-[18px] whitespace-nowrap inline-block" onClick={handleViewOffersClick}
+              style={{
+                color: 'var(--nmns-color-secondary-700, #A47D47)',
+                fontSize: '12px',
+                fontStyle: 'normal',
+                fontWeight: 700,
+                letterSpacing: '0.32px',
+                lineHeight: '4px',
+                textTransform: 'uppercase'
+              }}
+            >
+              VIEW OFFERS ›
+            </span>
           </div>
 
           {/* Secure Transaction */}
@@ -647,10 +887,17 @@ const ProductPage = () => {
             alt="Secure Transaction"
           />
 
-          <hr className="border-gray-400 my-[10px] w-full" />
+          <div
+            style={{
+              height: '1px',
+              background: 'linear-gradient(180deg, rgba(217, 217, 217, 1), rgba(217, 217, 217, 1) 97%)',
+              margin: '0px 0px',
+              width: '100%'
+            }}
+          />
 
           {/* Delivery Check */}
-          <div className="my-8 pb-3 border-b border-[#dee2e6]">
+          <div className="my-4 pb-3 border-b border-[#dee2e6]" style={{ width: '100%' }}>
             <div className="flex items-center text-[1.25rem] mb-3">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                 <circle cx="12" cy="10" r="4"/>
@@ -658,69 +905,280 @@ const ProductPage = () => {
               </svg>
               <span className="text-[1.18rem] font-bold text-[#495057]">CHECK DELIVERY DATE:</span>
             </div>
-            <div className="flex w-full mb-[18px]">
+            <div className="flex w-full mb-[18px]" style={{ position: 'relative' }}>
               <input 
                 className="flex-1 py-3 px-4 text-[1.08rem] border-[1.5px] border-[#adb5bd] border-r-0 rounded-none outline-none bg-white text-[#495057]" 
                 type="text" 
                 placeholder="Enter Pincode" 
                 maxLength={6} 
+                style={{
+                  width: '100%',
+                  padding: '0 8px',
+                  fontSize: '14px',
+                  border: '1px solid #808080',
+                  color: '#222222',
+                  fontWeight: 500,
+                  height: '40px',
+                  letterSpacing: '0.32px'
+                }}
               />
-              <button className="bg-[#bfa16a] text-white font-bold text-[1.08rem] border-none rounded-none px-8 cursor-pointer transition-colors duration-200 tracking-wider hover:bg-[#a68b54]">
-                CHECK
-              </button>
+              <button className="bg-[#bfa16a] text-white font-bold text-[1.08rem] border-none rounded-none px-8 cursor-pointer transition-colors duration-200 tracking-wider hover:bg-[#a68b54]"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    height: '100%',
+                    padding: '0 10px',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 0,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    width: '92px',
+                    lineHeight: 0,
+                    textTransform: 'uppercase',
+                    background: '#BD9966'
+                  }}
+                >
+                  CHECK
+                </button>
             </div>
           </div>
 
-          <hr className="border-gray-400 my-[10px] w-full" />
+         
 
           {/* Offers Section */}
           <div className="mb-6" ref={offersRef}>
-            <h3 className="text-[1.18rem] font-bold mb-3 text-[#495057] tracking-wider">OFFERS</h3>
-            <div className="flex flex-col gap-0 mt-3">
+            <h3 className="text-[1.18rem] font-bold mb-3 text-[#495057] tracking-wider"
+              style={{
+                fontSize: '16px',
+                fontWeight: 600,
+                lineHeight: '21px',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                position: 'relative',
+                cursor: 'pointer',
+                color: 'black',
+                fontFamily: 'Open Sans'
+              }}
+            >
+              OFFERS
+            </h3>
+            <div className="flex flex-col gap-0 ">
               {/* Student Offer */}
-              <div className="flex items-start gap-4 py-3">
-                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/UNiDAYS_logo.svg?v=1744190973" alt="Student Offer" />
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="text-[1.08rem] font-bold text-[#495057] mb-[2px]">Extra 15% OFF for Students.</div>
+              <div className="flex items-start"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginLeft: 0,
+                  position: 'relative'
+                }}
+              >
+                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/UNiDAYS_logo.svg?v=1744190973" alt="Student Offer" 
+                  style={{ width: '48px', height: '48px', marginBottom: 0 }}
+                />
+                <div className="flex-1 flex flex-col justify-center"
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    margin: '0px 16px',
+                    flexDirection: 'column',
+                    padding: '12px 0px'
+                  }}
+                >
+                  <div class="font-bold text-[#222]"
+                    style={{
+                      color: '#222',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 700,
+                      lineHeight: '16px',
+                      letterSpacing: '0.32px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Extra 15% OFF for Students.
+                  </div>
                   <div className="text-base text-[#666] font-normal mb-0">Get verified with UNiDAYS to avail this offer.</div>
+                  <a href="https://neemans.com/pages/student-discount" target="_blank" rel="noopener" style={{ color: '#8E6D3E', textDecoration: 'underline', fontWeight:'500px' }}>
+                Know More
+            </a>
                 </div>
               </div>
               <hr className="border-t border-[#dee2e6] m-0 ml-[60px]" />
 
               {/* Pay Later Offer */}
-              <div className="flex items-start gap-4 py-3">
-                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/snapmint_offers_logo.svg?v=1720514035" alt="Pay Later" />
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="text-[1.08rem] font-bold text-[#495057] mb-[2px]">Pay only Rs.{Math.floor(product.price / 3)} now and rest in 2 easy EMIs</div>
-                  <div className="text-base text-[#666] font-normal mb-0">No Cost EMI available via UPI.</div>
+              <div className="flex items-start  py-3"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginLeft: 0,
+                  position: 'relative'
+                }}
+              >
+                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/snapmint_offers_logo.svg?v=1720514035" alt="Pay Later" 
+                  style={{ width: '48px', height: '48px', marginBottom: 0 }}
+                />
+                <div className="flex-1 flex flex-col justify-center"
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    margin: '0px 16px',
+                    flexDirection: 'column',
+                    
+                  }}
+                >
+                  <div class="font-bold text-[#222]"
+                    style={{
+                      color: '#222',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '16px',
+                      letterSpacing: '0.32px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                   Pay <span class="off-bold-text font-bold text-[#222]">only Rs.{Math.ceil(product.price / 3)} </span><span style={{
+                        color: '#222',
+                        fontSize: '14px',
+                        fontStyle: 'normal',
+                        fontWeight: 500,
+                        lineHeight: '16px',
+                        letterSpacing: '0.32px',
+                        marginBottom: '8px'
+                      }}>now and rest in 2 easy EMIs using Neeman’s Pay Later.</span>
+                  </div>
+                  <div class="text-[#222] text-[14px] font-[500] leading-[16px] not-italic">No Cost EMI available via UPI.</div>
                 </div>
               </div>
               <hr className="border-t border-[#dee2e6] m-0 ml-[60px]" />
 
               {/* Buy 2 Offer */}
-              <div className="flex items-start gap-4 py-3">
-                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/Buy_2_Logo.jpg?v=1739781910" alt="2 Products Offer" />
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="text-[1.08rem] font-bold text-[#495057] mb-[2px]">Buy any 2 products, get Extra 7% OFF</div>
-                  <div className="text-base text-[#666] font-normal mb-0">
-                    Discounted Price: <span className="font-bold">Rs. {Math.round(product.price * 0.93)}</span>
+              <div className="flex items-start "
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginLeft: 0,
+                  position: 'relative'
+                }}
+              >
+                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/Buy_2_Logo.jpg?v=1739781910" alt="2 Products Offer" 
+                  style={{ width: '48px', height: '48px', marginBottom: 0 }}
+                />
+                <div className="flex-1 flex flex-col justify-center"
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    margin: '0px 16px',
+                    flexDirection: 'column',
+                    padding: '12px 0px'
+                  }}
+                >
+                  <div class="font-bold text-[#222]"
+                    style={{
+                      color: '#222',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '16px',
+                      letterSpacing: '0.32px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Buy any 2 products, get <span class="font-[700] text-[#222]">Extra 7% OFF</span>
+                  </div>
+                  <div className="text-base text-[#666] font-normal mb-0"
+                    style={{
+                      color: 'var(--nmns-color-primary-800-default, #222)',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '16px'
+                    }}
+                  >
+                    Discounted Price: <span className="font-bold">Rs. {Math.floor(product.price * 0.93)}</span>
+                    <span style={{
+                      textDecoration: 'line-through',
+                      color: '#B3B3B3',
+                      marginLeft: '8px',
+                      fontWeight: 500
+                    }}>
+                      Rs. {product.price}
+                    </span>
                   </div>
                 </div>
               </div>
               <hr className="border-t border-[#dee2e6] m-0 ml-[60px]" />
 
               {/* Buy 3 Offer */}
-              <div className="flex items-start gap-4 py-3">
-                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/Buy_3_Logo.jpg?v=1739781911" alt="3 Products Offer" />
-                <div className="flex-1 flex flex-col justify-center">
-                  <div className="text-[1.08rem] font-bold text-[#495057] mb-[2px]">Buy any 3 products, get Extra 10% OFF</div>
-                  <div className="text-base text-[#666] font-normal mb-0">
+              <div className="flex items-start py-3"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginLeft: 0,
+                  position: 'relative'
+                }}
+              >
+                <img className="w-11 h-11 rounded-full bg-[#f5f5f1] object-contain flex-shrink-0 block" src="https://cdn.shopify.com/s/files/1/2428/5565/files/Buy_3_Logo.jpg?v=1739781911" alt="3 Products Offer" 
+                  style={{ width: '48px', height: '48px', marginBottom: 0 }}
+                />
+                <div className="flex-1 flex flex-col justify-center"
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    margin: '0px 16px',
+                    flexDirection: 'column',
+                    padding: '12px 0px'
+                  }}
+                >
+                  <div class="font-bold text-[#222]"
+                    style={{
+                      color: '#222',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '16px',
+                      letterSpacing: '0.32px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Buy any 3 products, get <span class="font-[700] text-[#222]">Extra 10% OFF</span>
+                  </div>
+                  <div className="text-base text-[#666] font-normal mb-0"
+                    style={{
+                      color: 'var(--nmns-color-primary-800-default, #222)',
+                      fontSize: '14px',
+                      fontStyle: 'normal',
+                      fontWeight: 500,
+                      lineHeight: '16px'
+                    }}
+                  >
                     Discounted Price: <span className="font-bold">Rs. {Math.round(product.price * 0.90)}</span>
+                    <span style={{
+                      textDecoration: 'line-through',
+                      color: '#B3B3B3',
+                      marginLeft: '8px',
+                      fontWeight: 500
+                    }}>
+                      Rs. {product.price}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div
+            style={{
+              height: '1px',
+              background: 'linear-gradient(180deg, rgba(217, 217, 217, 1), rgba(217, 217, 217, 1) 97%)',
+              margin: '0px 0px',
+              width: '100%',
+              marginBottom:'0px'
+            }}
+          />
 
           {/* Product Description */}
           <div className="text-[1.02rem] leading-[1.5] p-[18px] my-5 break-words">
@@ -728,40 +1186,25 @@ const ProductPage = () => {
             <p className="text-[1.02rem] text-[#666] leading-[1.6] m-0 font-sans">{product.description}</p>
           </div>
 
-          {/* Product Details */}
-          <div className="mb-6">
-            <h3 className="text-[1.18rem] font-bold mb-3 text-[#495057] tracking-wider">DETAILS</h3>
-            <ul className="list-none p-0 m-0">
-              <li className="text-base text-[#666] mb-2 leading-[1.6]"><strong className="text-[#495057] font-semibold mr-[6px]">Category:</strong> {product.category}</li>
-              <li className="text-base text-[#666] mb-2 leading-[1.6]"><strong className="text-[#495057] font-semibold mr-[6px]">Color:</strong> {product.color}</li>
-              <li className="text-base text-[#666] mb-2 leading-[1.6]"><strong className="text-[#495057] font-semibold mr-[6px]">Material:</strong> {product.material}</li>
-              <li className="text-base text-[#666] mb-2 leading-[1.6]"><strong className="text-[#495057] font-semibold mr-[6px]">Care:</strong> {product.care}</li>
-              <li className="text-base text-[#666] mb-2 leading-[1.6]"><strong className="text-[#495057] font-semibold mr-[6px]">Warranty:</strong> {product.warranty}</li>
-            </ul>
-          </div>
+        
         </div>
       </section>
 
       {/* Product Tabs Navbar */}
-      <ProductTabsNavbar />
+      <ProductTabsNavbar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        features={
+          product && product.images && product.features
+            ? [0, 1, 2, 3].map(i => ({
+                image: product.images[i]?.url || '',
+                text: product.features[i] || 'Product feature not available'
+              }))
+            : []
+        }
+      />
+      <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
 
-      {/* Cart Sidebar placeholder */}
-      {showCartSidebar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-xl">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Cart</h2>
-              <p className="text-gray-600">Product added to cart successfully!</p>
-              <button 
-                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                onClick={() => setShowCartSidebar(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
