@@ -417,7 +417,7 @@ const ProductPage = () => {
   };
 
     return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={{ marginTop: '64px' }}>
       <Navbar />
       {/* Breadcrumb Navigation Bar */}
       {(() => {
@@ -427,7 +427,7 @@ const ProductPage = () => {
           displayTag = displayTag.charAt(0).toUpperCase() + displayTag.slice(1);
         }
         return (
-          <div className="max-w-[1300px] w-full mx-auto bg-white sticky top-[64px] z-40" style={{zIndex: 40, position: 'sticky', top: 64, background: '#fff'}}>
+          <div className="max-w-[1300px] w-full mx-auto bg-white" style={{ background: '#fff' }}>
             <nav className="py-4 text-sm text-gray-600 flex items-center gap-2">
               {/* Home Icon */}
               <a href="/" className="flex items-center hover:underline text-gray-700 font-medium" aria-label="Home">
@@ -473,7 +473,7 @@ const ProductPage = () => {
         `}
       </style>
       <section className="flex flex-row gap-3 max-w-[1300px] w-full mx-auto  items-stretch bg-white"
-        style={{ marginTop: '112px' }}
+       
       >
         {/* Column 1: Product Images */}
         <div className="flex flex-row items-start">
