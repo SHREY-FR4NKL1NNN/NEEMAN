@@ -57,6 +57,7 @@ const tabs = [
 const ProductTabsNavbar = ({ activeTab, onTabChange, features = [] }) => {
   const featuresRef = useRef(null);
   const reviewsRef = useRef(null);
+  const faqRef = useRef(null); // Add FAQ ref
 
   // Scroll to section on tab click
   const handleTabClick = (idx) => {
@@ -65,6 +66,8 @@ const ProductTabsNavbar = ({ activeTab, onTabChange, features = [] }) => {
       featuresRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (idx === 1 && reviewsRef.current) {
       reviewsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (idx === 2 && faqRef.current) {
+      faqRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -173,6 +176,73 @@ const ProductTabsNavbar = ({ activeTab, onTabChange, features = [] }) => {
             <button className="w-56 py-3 bg-black text-white font-bold text-lg rounded-md tracking-wide transition-colors duration-200 hover:bg-[#333] focus:outline-none focus:ring-2 focus:ring-[#c5a97c]">WRITE A REVIEW</button>
             <button className="w-56 py-3 border-2 border-black text-black font-bold text-lg rounded-md tracking-wide transition-colors duration-200 hover:bg-[#f6f3ee] focus:outline-none focus:ring-2 focus:ring-[#c5a97c]">Ask a question</button>
           </div>
+
+          
+        </div>
+      </div>
+      {/* FAQ Section: Always show after reviews */}
+      <div ref={faqRef} className="w-full max-w-[1100px] mx-auto my-12 bg-white rounded shadow">
+        <h2 className="text-3xl font-serif font-bold   bg-black text-white p-6">Frequently Asked Questions :</h2>
+        <style>{`
+          /* Hide default marker for Chrome, Safari, Edge */
+          details summary::-webkit-details-marker {
+            display: none;
+          }
+          /* Hide default marker for Firefox */
+          details > summary {
+            list-style: none;
+          }
+          /* Remove marker for all browsers */
+          details summary {
+            list-style-type: none;
+            outline: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+          /* Rotate custom arrow when open */
+          details[open] .faq-arrow {
+            transform: rotate(180deg);
+          }
+        `}</style>
+        <div className="divide-y divide-gray-200">
+          <details className="py-6 ">
+            <summary className="cursor-pointer text-lg font-semibold text-grey">
+              Are Neeman’s shoes washable?
+              <span className="faq-arrow transition-transform duration-200 ml-2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <p className="mt-2 text-gray-700">Yes, most Neeman’s shoes are washable. Please refer to the care instructions for each product.</p>
+          </details>
+          <details className="py-4">
+            <summary className="cursor-pointer text-lg font-semibold">
+              How to care for the shoes on a daily basis?
+              <span className="faq-arrow transition-transform duration-200 ml-2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <p className="mt-2 text-gray-700">Wipe with a damp cloth and air dry. Avoid direct sunlight for prolonged periods.</p>
+          </details>
+          <details className="py-4">
+            <summary className="cursor-pointer text-lg font-semibold">
+              Is Neeman’s sizing standard/exact or should I size up/down?
+              <span className="faq-arrow transition-transform duration-200 ml-2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <p className="mt-2 text-gray-700">Neeman’s shoes follow standard sizing. If you are between sizes, we recommend sizing up.</p>
+          </details>
+          <details className="py-4">
+            <summary className="cursor-pointer text-lg font-semibold">
+              Where can I wear my Neeman’s?
+              <span className="faq-arrow transition-transform duration-200 ml-2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <p className="mt-2 text-gray-700">Neeman’s shoes are versatile and can be worn for casual, semi-formal, and daily activities.</p>
+          </details>
         </div>
       </div>
       {activeTab !== 0 && (
