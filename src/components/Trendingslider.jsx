@@ -173,7 +173,7 @@ const TrendingSlider = ({ handles = {} }) => {
                 style={{ maxWidth: '22%' }}
               >
                 <div
-                  className="bg-white border border-gray-200 rounded-md flex flex-col min-h-[500px] h-full shadow-sm group"
+                  className="bg-white border border-gray-200 rounded-md flex flex-col min-h-[500px] lg:min-h-[560px] h-full shadow-sm group"
                   onMouseEnter={() => setHoveredIdx(idx)}
                   onMouseLeave={() => setHoveredIdx(null)}
                 >
@@ -187,7 +187,7 @@ const TrendingSlider = ({ handles = {} }) => {
                   </div>
                   <Link to={handle ? `/collection/${handle}` : '#'} className="block w-full h-full">
                     <div className="relative flex-1 flex flex-col h-full">
-                      <div className="relative bg-gray-50 min-h-[350px] h-80 flex items-center justify-center pb-10">
+                      <div className="relative bg-gray-50 min-h-[350px] h-80 flex items-center justify-center pb-4 pt-0 lg:pt-2">
                         {/* Swatch row absolutely at bottom, only on hover */}
                         <div className={`absolute left-0 right-0 bottom-0 flex items-center justify-center gap-2 transition-all duration-300 z-20 bg-white ${hoveredIdx === idx ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-6 pointer-events-none'}`}
                           style={{ height: '44px' }}>
@@ -248,7 +248,7 @@ const TrendingSlider = ({ handles = {} }) => {
                             </svg>
                           </button>
                         </div>
-                        <div className={`relative w-full h-full z-0 flex items-center justify-center transition-transform duration-300 ${hoveredIdx === idx ? '-translate-y-8' : ''}`}>
+                        <div className={`relative w-full h-full z-0 flex items-center justify-center transition-transform duration-300 ${hoveredIdx === idx ? '-translate-y-8 lg:-translate-y-4' : ''}`}>
                           <img
                             src={active.image}
                             alt={active.title}

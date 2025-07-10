@@ -1,0 +1,18 @@
+{
+  "videoSliders-2": [
+    {
+      "id": "video2-1",
+      "thumbnail": "",
+      "previewVideo": "https://example.com/video2-preview.mp4",
+      "megaVideo": "https://example.com/video2-mega.mp4",
+      "backgroundImage": "",
+      "product": {
+        "id": 1234567890,
+        "title": "Sample Product for Video 2",
+        "body_html": "<p>Sample description for video slider 2.</p>",
+        "vendor": "Neeman's",
+        "product_type": "Sneakers"
+      }
+    }
+  ]
+} 
