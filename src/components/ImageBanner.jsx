@@ -8,4 +8,4 @@ const ImageBanner = ({ imageUrl, alt = "Banner", style = {} }) => {
   );
 };
 
-export default ImageBanner; 
+export default ImageBanner;

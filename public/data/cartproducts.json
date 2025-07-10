@@ -1,0 +1,28 @@
+{
+  "mostBoughtProducts": [
+    {
+      "id": "crossover-brogues-tan",
+      "handle": "crossover-brogues-tan",
+      "title": "Crossover Brogues : Tan",
+      "price": 2749,
+      "originalPrice": 5199,
+      "image": "https://cdn.shopify.com/s/files/1/2428/5565/files/Tan_ccd0010f-b5b1-4177-ae78-4a67989354d8.png?v=1743665286"
+    },
+    {
+      "id": "sole-max-slip-ons",
+      "handle": "sole-max-slip-ons",
+      "title": "Sole Max Slip Ons : Ultra Black",
+      "price": 1529,
+      "originalPrice": 2999,
+      "image": "https://cdn.shopify.com/s/files/1/2428/5565/files/Ultra_Black_8a4564a9-3a8d-4765-8a01-d60a28d2ddc4.png?v=1743681492"
+    },
+    {
+      "id": "grip-fit-slip-ons-black",
+      "handle": "grip-fit-slip-ons",
+      "title": "Grip Fit Slip Ons : Black",
+      "price": 1399,
+      "originalPrice": 3999,
+      "image": "https://cdn.shopify.com/s/files/1/2428/5565/files/Red_0d0f30c6-15c2-44f3-8c75-a251777d6e15.png?v=1743668190"
+    }
+  ]
+}

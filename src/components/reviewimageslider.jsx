@@ -1,25 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-
-const slides = [
-    {
-      image: 'https://neemans.com/cdn/shop/files/01_Desktop_New.jpg?v=1744807528&width=1500',
-      href: 'https://neemans.com/products/begin-walk-flow'
-    },
-    {
-      image: 'https://neemans.com/cdn/shop/files/02_Desktop_New.jpg?v=1744807528&width=1500',
-      href: '#'
-    },
-    {
-      image: 'https://neemans.com/cdn/shop/files/04_Desktop_New.jpg?v=1744807528&width=1500',
-      href: '#'
-    }
-  ];
+import reviewimageslider from "/public/data/reviewimageslider.json";
 
 const ReviewimageSlider = () => {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { slides } = reviewimageslider;
 
   // Auto-slide every 4 seconds
   useEffect(() => {

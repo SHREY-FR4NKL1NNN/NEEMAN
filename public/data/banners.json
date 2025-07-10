@@ -1,0 +1,40 @@
+{
+  "banners": [
+    {
+      "imageUrl": "/assets/banner1.png",
+      "alt": "Neeman's Impact 1"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Awards_Desktop.jpg?v=1727499800&width=1500",
+      "alt": "Neeman's Impact 2"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Offer_Heading_Desktop_a0c2e60b-dbab-4088-834d-40e9d7ce2ddf.jpg?v=1720181852&width=1920",
+      "alt": "Neeman's Impact 3"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Offers_desktop_01_2506b261-7719-4241-92bb-ae553479abe5.jpg?v=1739874202&width=1500",
+      "alt": "Neeman's Impact 4"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Desktop_awards_cb07f1b0-6f23-43ec-bf6a-9a2f34c1c547.jpg?v=1736334654&width=1500",
+      "alt": "Neeman's Impact 5"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Frame_3066.jpg?v=1712584274&width=1500",
+      "alt": "Neeman's Impact 6"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Featured_in_cc1443f3-4215-46f6-be65-2647ccc65f40.jpg?v=1712584374&width=1500",
+      "alt": "Neeman's Impact 7"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Offline_store.jpg?v=1712241901&width=1500",
+      "alt": "Neeman's Impact 8"
+    },
+    {
+      "imageUrl": "https://neemans.com/cdn/shop/files/Bulk_enquires_desktop_9efa04f3-7756-4e75-a8a1-d76c7d4615ec.jpg?v=1712241901&width=1500",
+      "alt": "Neeman's Impact 9"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "collections": [
+    {
+      "title": "MEN",
+      "image": "https://neemans.com/cdn/shop/files/For_Men.jpg?v=1712743136&width=400",
+      "handle": "men"
+    },
+    {
+      "title": "WOMEN",
+      "image": "https://neemans.com/cdn/shop/files/For_Women.jpg?v=1712743136&width=400",
+      "handle": "women"
+    },
+    {
+      "title": "LIMITED STOCK",
+      "image": "https://neemans.com/cdn/shop/files/Limited_Stock_Banner.jpg?v=1741084491&width=400",
+      "handle": "limited-stock"
+    },
+    {
+      "title": "TRENDING",
+      "image": "https://neemans.com/cdn/shop/files/For_Men-1.jpg?v=1712743136&width=400",
+      "handle": "trending-collection"
+    }
+  ]
+}

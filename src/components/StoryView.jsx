@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
+import storyData from '/public/data/storyview.json';
 
-const StoryView = ({ videoUrl, imageUrl }) => {
+const StoryView = () => {
   const videoRef = useRef(null);
 
   const handleMouseEnter = () => {
@@ -26,7 +27,7 @@ const StoryView = ({ videoUrl, imageUrl }) => {
           <div className="w-full max-w-3xl aspect-video bg-black overflow-hidden">
             <video
               ref={videoRef}
-              src={videoUrl}
+              src={storyData}
               controls
               className="w-full h-full object-cover"
               onMouseEnter={handleMouseEnter}
@@ -36,7 +37,7 @@ const StoryView = ({ videoUrl, imageUrl }) => {
         </div>
         {/* Image Section (right) */}
         <div className="flex-1 flex items-center justify-center">
-          <img src={imageUrl} alt="Story visual" className="w-full h-auto max-h-[600px] object-contain" />
+          <img src={storyData.imageUrl} alt="Story visual" className="w-full h-auto max-h-[600px] object-contain" />
         </div>
       </div>
     </div>
