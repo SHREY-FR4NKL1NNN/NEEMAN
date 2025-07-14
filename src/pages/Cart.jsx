@@ -192,9 +192,9 @@ const CartSidebar = ({ isOpen, onClose }) => {
         <div className="cart-sidebar-header" style={{paddingTop: 0, paddingBottom: 0}}>
           <h2 style={{margin: 0, padding: 0, fontWeight: 700, fontSize: '22px', color: '#222', display: 'flex', alignItems: 'center', gap: '8px'}}>
             My Cart
-            {getCartItemsCount() > 0 && (
+            {cart.items.length > 0 && (
               <span style={{fontWeight: 500, fontSize: '18px', color: '#888'}}>
-                {getCartItemsCount()}
+                {cart.items.length}
               </span>
             )}
           </h2>
@@ -301,9 +301,14 @@ const CartSidebar = ({ isOpen, onClose }) => {
                     <div className="rewards-tiers-container" style={{background: 'rgba(0,0,0,0.03)', borderRadius: 12, marginBottom: 24, padding: '16px 12px 8px 12px', position: 'relative', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.03)'}}>
                       <div className="rewards-tiers-labels" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, fontWeight: 600, fontSize: 14, color: '#222'}}>
                         <span style={{fontSize: 14, color: '#111', textAlign: 'center', fontWeight: 'normal'}}>
-                          {cart.items.length === 1 && (<span>Add 1 more and get <span style={{color: '#111', fontWeight: 700}}>Extra 7% OFF</span></span>)}
-                          {cart.items.length === 2 && (<span>Add 1 more and get <span style={{color: '#111', fontWeight: 700}}>Extra 10% OFF</span></span>)}
-                          {cart.items.length >= 3 && (<span>Extra 10% OFF applied!</span>)}
+                          {(() => {
+                          const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
+                          if (totalItems === 1) return (<span>Add 1 more and get <span style={{color: '#111', fontWeight: 700}}>Extra 7% OFF</span></span>);
+                          if (totalItems === 2) return (<span>Add 1 more and get <span style={{color: '#111', fontWeight: 700}}>Extra 10% OFF</span></span>);
+                          if (totalItems >= 3) return (<span>Extra 10% OFF applied!</span>);
+                          return null;
+                          })()}
+
                         </span>
                       </div>
                       <div className="rewards-progress-bar" style={{position: 'relative', height: 38, margin: '0 0 8px 0', background: 'transparent'}}>
@@ -315,7 +320,11 @@ const CartSidebar = ({ isOpen, onClose }) => {
                         {/* Progress bar background */}
                         <div style={{position: 'absolute', left: 0, right: 0, top: 25, height: 8, background: '#E6E6E6', borderRadius: 4, width: '100%'}}></div>
                         {/* Progress bar fill: only up to the 2nd icon when 2 items */}
-                        <div style={{position: 'absolute', left: 0, top: 24, height: 8, background: '#111', width: cart.items.length === 1 ? '25%' : cart.items.length === 2 ? '50%' : cart.items.length >= 3 ? '100%' : '0%', transition: 'width 0.3s'}}></div>
+                        <div style={{position: 'absolute', left: 0, top: 24, height: 8, background: '#111', width: (() => {
+                        const totalItems = cart.items.reduce((total, item) => total + item.quantity, 0);
+                        return totalItems === 1 ? '25%' : totalItems === 2 ? '50%' : totalItems >= 3 ? '100%' : '0%';
+                        })(), transition: 'width 0.3s'}}></div>
+
                         {/* 1st icon at 68% (snake circle with % always inside, tick above) */}
                         <div style={{position: 'absolute', left: '50%', top: 10, width: 32, height: 32, transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2}}>
                           <div style={{width: 32, height: 32, borderRadius: '50%', background: '#fff', border: cart.items.length >= 2 ? '2.5px solid #111' : '2.5px solid #BDBDBD', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', paddingRight: 0}}>

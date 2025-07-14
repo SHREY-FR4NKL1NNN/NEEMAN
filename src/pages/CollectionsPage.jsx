@@ -45,6 +45,9 @@ function Collections() {
         total: 0,
     });
 
+    const [showSizeModal, setShowSizeModal] = useState(false);
+    const [sizeModalProduct, setSizeModalProduct] = useState(null);
+    const [selectedVariant, setSelectedVariant] = useState(null);
     const { addToCart, isInCart, getItemQuantity } = useCart();
 
     // Add this state for sidebar
@@ -361,8 +364,9 @@ function Collections() {
 
     // Handler that adds to cart and opens sidebar
     const handleAddToCart = (product) => {
-        addToCart(product);
-        openCart();
+        setSizeModalProduct(product);
+        setShowSizeModal(true);
+        setSelectedVariant(null);
     };
 
     return (
@@ -500,11 +504,16 @@ function Collections() {
                             <ProductCard
                                 key={product.id}
                                 product={product}
-                                addToCart={handleAddToCart}
+                                addToCart={() => {
+                                setSizeModalProduct(product);
+                                setShowSizeModal(true);
+                                setSelectedVariant(null);
+                                }}
                                 isInCart={isInCart}
                                 getItemQuantity={getItemQuantity}
                             />
-                        ))}
+                        )
+                        )}
                     </div>
 
                     {hasMore && <div ref={sentinelRef} className="h-12" />}
@@ -514,6 +523,106 @@ function Collections() {
                 </main>
             </div>
             <CartSidebar isOpen={isCartOpen} onClose={closeCart} />
+            {showSizeModal && sizeModalProduct && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      background: 'rgba(0,0,0,0.3)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    }}
+    onClick={() => setShowSizeModal(false)}
+  >
+    <div
+      style={{
+        background: '#fff',
+        borderRadius: 8,
+        padding: 24,
+        minWidth: 280,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+        position: 'relative',
+      }}
+      onClick={e => e.stopPropagation()}
+    >
+      <h3 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>Select Size</h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {sizeModalProduct.variants.map(variant => (
+          <button
+            key={variant.id}
+            onClick={() => setSelectedVariant(variant)}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 4,
+              border: selectedVariant?.id === variant.id ? '2px solid #808080' : '2px solid black',
+              background: selectedVariant?.id === variant.id ? '#f9f5f0' : '#fff',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {variant.title}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => {
+          if (selectedVariant) {
+            addToCart({
+              id: sizeModalProduct.id,
+              variant_id: selectedVariant.id,
+              variant_title: selectedVariant.title,
+              handle: sizeModalProduct.handle,
+              title: sizeModalProduct.title,
+              price: Number(selectedVariant.price),
+              compare_at_price: Number(selectedVariant.compare_at_price) || Number(selectedVariant.price),
+              image: selectedVariant.featured_image?.src || sizeModalProduct.images?.[0]?.src || '',
+            });
+            setShowSizeModal(false);
+            setSelectedVariant(null);
+            setSizeModalProduct(null);
+            openCart();
+          }
+        }}
+        disabled={!selectedVariant}
+        style={{
+          width: '100%',
+          background: 'black',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          padding: '10px 0',
+          fontWeight: 700,
+          fontSize: 16,
+          cursor: selectedVariant ? 'pointer' : 'not-allowed',
+          opacity: selectedVariant ? 1 : 0.6,
+        }}
+      >
+        
+        Add to Cart
+      </button>
+      <button
+        onClick={() => setShowSizeModal(false)}
+        style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          background: 'transparent',
+          border: 'none',
+          fontSize: 18,
+          cursor: 'pointer',
+          color: '#888',
+        }}
+      >
+        ×
+      </button>
+    </div>
+  </div>
+)}
         </>
     );
 }
